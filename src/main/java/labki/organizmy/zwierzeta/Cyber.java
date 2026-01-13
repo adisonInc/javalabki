@@ -26,7 +26,7 @@ public class Cyber extends Zwierze {
 
         if (celBarszcz == null) {
             super.idz();
-            world.dodajLogi("C losowy");
+            world.dodajLogi("C Ruch");
             return;
         }
 
@@ -40,7 +40,7 @@ public class Cyber extends Zwierze {
 
         if (world.sprawdzCzyWGrid(nastepnyKrok)) {
             this.idz(nastepnyKrok);
-            world.dodajLogi("C sled");
+            world.dodajLogi("C idzie do barszczu");
         }
     }
 

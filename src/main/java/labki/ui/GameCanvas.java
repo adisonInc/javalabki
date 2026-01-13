@@ -33,7 +33,7 @@ import labki.organizmy.zwierzeta.Zolw;
 
 public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     private final Swiat world;
-    private final int cellSize = 40;
+    private final int cellSize = 35;
     private final Set<Integer> pressedKeys = new HashSet<>();
 
     public GameCanvas(Swiat world) {
@@ -54,7 +54,7 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         drawGrid(g2d);
         drawOrganisms(g2d);
@@ -101,7 +101,7 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
                 g.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
 
                 // Rysowanie symbolu
-                g.setColor(Color.WHITE);
+                g.setColor(Color.BLACK);
                 g.setFont(new Font("Arial", Font.BOLD, cellSize - 10));
                 FontMetrics fm = g.getFontMetrics();
                 String symbol = String.valueOf(rys.symbol);
@@ -110,9 +110,9 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
                 g.drawString(symbol, textX, textY);
 
                 // Wyświetlenie informacji o organizmu
-                g.setColor(Color.LIGHT_GRAY);
+                g.setColor(Color.BLACK);
                 g.setFont(new Font("Arial", Font.PLAIN, 8));
-                g.drawString("W:" + org.getWiek(), x + 3, y + cellSize - 5);
+                g.drawString("" + org.getWiek(), x + 3, y + cellSize - 5);
             }
         }
     }

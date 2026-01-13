@@ -39,6 +39,6 @@ public class Barszcz extends Roslina {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('B', Color.WHITE);
+        return new Rys('B',Color.DARK_GRAY);
     }
 }

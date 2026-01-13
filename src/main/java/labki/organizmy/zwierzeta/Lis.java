@@ -34,12 +34,12 @@ public class Lis extends Zwierze {
 
                 if (ofiara == null || ofiara.getSila() <= this.getSila()) {
                     this.idz(cel);
-                    world.dodajLogi("L polowanie");
+                    world.dodajLogi("L ruch ");
                     return;
                 }
             }
         }
-        world.dodajLogi("L ukrycie");
+
     }
 
     @Override
@@ -49,7 +49,7 @@ public class Lis extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('L', Color.YELLOW);
+        return new Rys('L', Color.ORANGE);
     }
 
 

@@ -15,8 +15,8 @@ public abstract class Roslina extends Organizm {
 
     @Override
     public void akcja() {
-       int los = world.getRandom().nextInt(30);
-       if(los==4){
+       int los = world.getRandom().nextInt(20);
+       if(los==0){
            rozmnoz(this.polozenie);
        }
     }
