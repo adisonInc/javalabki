@@ -4,9 +4,6 @@ import labki.Punkt;
 import labki.Swiat;
 import labki.organizmy.Organizm;
 
-import java.io.IOException;
-import java.util.Random;
-
 public abstract class Roslina extends Organizm {
     public Roslina(Swiat swiat, Punkt p) {
         super(swiat, p);

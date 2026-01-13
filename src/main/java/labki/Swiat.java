@@ -1,27 +1,23 @@
 package labki;
 
-import com.googlecode.lanterna.input.InputProvider;
-import com.googlecode.lanterna.input.KeyStroke;
-import labki.organizmy.Organizm;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.TextCharacter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
-import java.io.IOException;
-import java.util.*;
+import labki.organizmy.Organizm;
+import labki.ui.GameCanvas;
 
 public class Swiat {
     private static Swiat instance = null;
 
     private int N, M;
     private Organizm[][] grid;
-    private List<Organizm> inicjatywy = new ArrayList<>();
-    private List<String> logi = new ArrayList<>();
+    private final List<Organizm> inicjatywy = new ArrayList<>();
+    private final List<String> logi = new ArrayList<>();
     private int numerTury = 0;
-    private Screen screen;
-    private KeyStroke ostatniKlawisz;
-    private Random rand = new Random();
-
+    private final Random rand = new Random();
+    private GameCanvas gameCanvas;
 
     private Swiat() {
         this.N = 0;
@@ -36,8 +32,8 @@ public class Swiat {
         return instance;
     }
 
-    public void setScreen(Screen screen) {
-        this.screen = screen;
+    public static void resetInstance() {
+        instance = null;
     }
 
     public void setGrid(int n, int m) {
@@ -46,34 +42,15 @@ public class Swiat {
         grid = new Organizm[N][M];
     }
 
-    private static final TextCharacter PUSTE_POLE = new TextCharacter('.');
+    public void setGameCanvas(GameCanvas canvas) {
+        this.gameCanvas = canvas;
+    }
 
-    public void paintGrid() throws IOException {
-        if (screen == null) return;
-        screen.clear();
-
-        for (int y = 0; y < N; y++) {
-
-            //int offset = (y % 2 == 0) ? 0 : 1;
-            int offset=0;
-
-            for (int x = 0; x < M; x++) {
-                if (grid[y][x] != null) {
-                    Rys dane = grid[y][x].rysowanie();
-
-                    screen.setCharacter(x * 2 + offset, y, new TextCharacter(
-                            dane.symbol,
-                            dane.color,
-                            TextColor.ANSI.BLACK
-                    ));
-                } else {
-
-                    screen.setCharacter(x * 2 + offset, y, PUSTE_POLE);
-                }
-            }
+    public Set<Integer> getPressedKeys() {
+        if (gameCanvas != null) {
+            return gameCanvas.getPressedKeys();
         }
-        wypiszLogi();
-        screen.refresh();
+        return Set.of();
     }
 
     public int getGridN() { return N; }
@@ -113,17 +90,13 @@ public class Swiat {
 
     public void wykonajTure() {
         numerTury++;
+        logi.clear();
         sortInicjatywa();
         List<Organizm> kopia = new ArrayList<>(inicjatywy);
 
         for (Organizm o : kopia) {
             if (o.isZyje()) {
                 o.akcja();
-                StringBuilder s = new StringBuilder();
-                s.append(o.rysowanie().symbol);
-                s.append(" Wiek: ").append(o.getWiek());
-                s.append(" Sila: ").append(o.getSila());
-                dodajLogi("ruch: " + s);
                 o.incWiek();
             }
         }
@@ -165,20 +138,8 @@ public class Swiat {
         logi.add(s);
     }
 
-    private void wypiszLogi() throws IOException {
-        if (screen == null) return;
-        int row = 0;
-        for (String log : logi) {
-            if (row < N) {
-                screen.setCharacter(N + 10, row, new TextCharacter(log.charAt(0)));
-                row++;
-            }
-        }
-        czyscLogi();
-    }
-
-    private void czyscLogi() {
-        logi.clear();
+    public List<String> getLogi() {
+        return logi;
     }
 
     public Punkt losujPunkt(){
@@ -238,18 +199,6 @@ public class Swiat {
 
     public Random getRandom() {
         return rand;
-    }
-
-    public InputProvider getScreen() {
-        return this.screen;
-    }
-
-    public void setOstatniKlawisz(KeyStroke key) {
-        this.ostatniKlawisz = key;
-    }
-
-    public KeyStroke getOstatniKlawisz() {
-        return ostatniKlawisz;
     }
 
     public List<Organizm> getOrganizmy() {

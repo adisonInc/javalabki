@@ -1,12 +1,12 @@
 package labki.organizmy.zwierzeta;
 
+import java.awt.Color;
+import java.util.Random;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
 import labki.organizmy.Organizm;
-
-import java.util.Random;
 
 public class Zolw extends Zwierze {
 
@@ -25,10 +25,14 @@ public class Zolw extends Zwierze {
         int los = rand.nextInt(4);
         if(los==0){
             idz();
+            world.dodajLogi("Z ruch");
+        } else {
+            world.dodajLogi("Z stoi");
         }
     }
     @Override
     public void kolizja(Organizm napastnik){
+        if (napastnik == null) return;
         if (napastnik instanceof Zolw) {
             this.rozmnoz(this.polozenie);
         }
@@ -36,11 +40,11 @@ public class Zolw extends Zwierze {
             if (napastnik instanceof Zwierze) {
                 ((Zwierze) napastnik).wroc();
             }
-            world.dodajLogi("Żółw odpiera atak " + napastnik.getClass().getSimpleName());
+            world.dodajLogi("Z odbicie");
         }
         else {
             if (napastnik.getSila() >= this.getSila()) {
-                world.dodajLogi(napastnik.getClass().getSimpleName() + " zjada Żółwia");
+                world.dodajLogi("Z zjedzony");
                 this.setZyje(false);
 
                 Punkt staraPozNapastnika = napastnik.getPolozenie();
@@ -49,7 +53,7 @@ public class Zolw extends Zwierze {
                 world.zmienPoz(staraPozNapastnika, pozycjaZolwia, napastnik);
                 napastnik.setPolozenie(pozycjaZolwia);
             } else {
-                world.dodajLogi("Żółw pokonuje " + napastnik.getClass().getSimpleName());
+                world.dodajLogi("Z wygral");
                 napastnik.setZyje(false);
                 world.zmienPoz(napastnik.getPolozenie(), napastnik.getPolozenie(), null);
             }
@@ -62,8 +66,7 @@ public class Zolw extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-
-        return new Rys('Z', TextColor.ANSI.GREEN_BRIGHT);
+        return new Rys('Z', Color.GREEN);
     }
 
 

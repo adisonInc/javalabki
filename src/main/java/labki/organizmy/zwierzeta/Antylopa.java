@@ -1,9 +1,10 @@
 package labki.organizmy.zwierzeta;
 
+import java.awt.Color;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
 import labki.organizmy.Organizm;
 
 public class Antylopa extends Zwierze {
@@ -26,15 +27,16 @@ public class Antylopa extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-
-        return new Rys('A', TextColor.ANSI.BLUE);
+        return new Rys('A', Color.CYAN);
     }
 
     @Override
     public void akcja(){
         this.idz();
+        world.dodajLogi("A ruch1");
         if(this.isZyje()){
             this.idz();
+            world.dodajLogi("A ruch2");
         }
     }
 
@@ -42,15 +44,19 @@ public class Antylopa extends Zwierze {
     public void kolizja(Organizm inny){
       if(inny instanceof  Antylopa){
             this.rozmnoz(this.getPolozenie());
+            world.dodajLogi("A rozmnazanie");
             return;
         }
-        int proby = 0;
-      int los= world.getRandom().nextInt(10);
+      if (inny != null) {
+        int los= world.getRandom().nextInt(10);
           if (los>5){
+              world.dodajLogi("A ucieczka");
               idz(world.pustySasiad(this.getPolozenie()));
           }else {
+              world.dodajLogi("A walka");
               walka(inny);
           }
+      }
     }
 
 

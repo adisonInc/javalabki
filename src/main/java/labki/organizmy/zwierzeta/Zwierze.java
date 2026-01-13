@@ -1,11 +1,10 @@
 package labki.organizmy.zwierzeta;
 
+import java.util.Random;
+
 import labki.Punkt;
 import labki.Swiat;
 import labki.organizmy.Organizm;
-
-import java.io.IOException;
-import java.util.Random;
 
 public abstract class Zwierze extends Organizm {
     protected Punkt ostatniaPozycja;

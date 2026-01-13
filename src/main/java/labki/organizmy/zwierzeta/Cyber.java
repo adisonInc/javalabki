@@ -1,18 +1,17 @@
 package labki.organizmy.zwierzeta;
 
-import labki.Punkt;
-import labki.Rys;
-import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
-import labki.organizmy.Organizm;
-import labki.organizmy.rosliny.Barszcz;
-//import labki.organizmy.rosliny.Barszcz;
-
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+import labki.organizmy.rosliny.Barszcz;
+
 public class Cyber extends Zwierze {
-    private static List<Organizm> cacheBarszcze = new ArrayList<>();
+    private static final List<Organizm> cacheBarszcze = new ArrayList<>();
     private static int nrTuryCache = -1;
 
     public Cyber(Swiat swiat, Punkt p) {
@@ -27,6 +26,7 @@ public class Cyber extends Zwierze {
 
         if (celBarszcz == null) {
             super.idz();
+            world.dodajLogi("C losowy");
             return;
         }
 
@@ -40,6 +40,7 @@ public class Cyber extends Zwierze {
 
         if (world.sprawdzCzyWGrid(nastepnyKrok)) {
             this.idz(nastepnyKrok);
+            world.dodajLogi("C sled");
         }
     }
 
@@ -84,10 +85,14 @@ public class Cyber extends Zwierze {
 
     @Override
     public void kolizja(Organizm napastnik) {
-        if (napastnik instanceof Cyber) {
-            this.rozmnoz(this.polozenie);
-        } else {
-            super.kolizja(napastnik);
+        if (napastnik != null) {
+            if (napastnik instanceof Cyber) {
+                this.rozmnoz(this.polozenie);
+                world.dodajLogi("C rozmnazanie");
+            } else {
+                world.dodajLogi("C walka");
+                super.kolizja(napastnik);
+            }
         }
     }
 
@@ -98,6 +103,6 @@ public class Cyber extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('C', TextColor.ANSI.YELLOW_BRIGHT);
+        return new Rys('C', Color.YELLOW);
     }
 }

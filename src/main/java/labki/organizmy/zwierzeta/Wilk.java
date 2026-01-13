@@ -1,9 +1,10 @@
 package labki.organizmy.zwierzeta;
 
+import java.awt.Color;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
 
 public class Wilk extends Zwierze {
 
@@ -18,6 +19,7 @@ public class Wilk extends Zwierze {
     @Override
     public void akcja() {
         this.idz();
+        world.dodajLogi("W ruch");
     }
 
 
@@ -28,8 +30,7 @@ public class Wilk extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-
-        return new Rys('W', TextColor.ANSI.RED);
+        return new Rys('W', Color.RED);
     }
 
 

@@ -1,9 +1,10 @@
 package labki.organizmy.zwierzeta;
 
+import java.awt.Color;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
 
 public class Owca extends Zwierze {
 
@@ -13,6 +14,12 @@ public class Owca extends Zwierze {
         this.sila = 4;
         this.inicjatywa = 4;
         this.wiek = 0;
+    }
+
+    @Override
+    public void akcja() {
+        super.akcja();
+        world.dodajLogi("O ruch");
     }
 
 
@@ -25,8 +32,7 @@ public class Owca extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-
-        return new Rys('O', TextColor.ANSI.WHITE_BRIGHT);
+        return new Rys('O', Color.WHITE);
     }
 
 

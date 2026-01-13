@@ -1,9 +1,10 @@
 package labki.organizmy.zwierzeta;
 
+import java.awt.Color;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
 import labki.organizmy.Organizm;
 
 public class Lis extends Zwierze {
@@ -33,10 +34,12 @@ public class Lis extends Zwierze {
 
                 if (ofiara == null || ofiara.getSila() <= this.getSila()) {
                     this.idz(cel);
+                    world.dodajLogi("L polowanie");
                     return;
                 }
             }
         }
+        world.dodajLogi("L ukrycie");
     }
 
     @Override
@@ -46,8 +49,7 @@ public class Lis extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-
-        return new Rys('L', TextColor.ANSI.YELLOW_BRIGHT);
+        return new Rys('L', Color.YELLOW);
     }
 
 

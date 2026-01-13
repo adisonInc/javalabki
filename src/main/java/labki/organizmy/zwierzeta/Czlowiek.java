@@ -1,17 +1,18 @@
 package labki.organizmy.zwierzeta;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.util.Set;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.input.KeyType;
-
-import com.googlecode.lanterna.input.KeyStroke;
 import labki.organizmy.Organizm;
-import java.io.IOException;
 
 public class Czlowiek extends Zwierze {
     private int cd = 5;
+    private boolean umiejetnoscAktywna = false;
+    private int pozostaloRuchow = 0;
 
     public Czlowiek(Swiat swiat, Punkt p) {
         super(swiat, p);
@@ -24,26 +25,18 @@ public class Czlowiek extends Zwierze {
     public void akcja() {
         if (cd > 0) cd--;
 
-        KeyStroke ks = world.getOstatniKlawisz();
-        if (ks == null) return;
-
+        Set<Integer> pressedKeys = world.getPressedKeys();
+        
         int dx = 0, dy = 0;
 
-        if (ks.getKeyType() == KeyType.Character) {
-            char c = Character.toLowerCase(ks.getCharacter());
+        if (pressedKeys.contains(KeyEvent.VK_W)) dy = -1;
+        else if (pressedKeys.contains(KeyEvent.VK_S)) dy = 1;
+        
+        if (pressedKeys.contains(KeyEvent.VK_A)) dx = -1;
+        else if (pressedKeys.contains(KeyEvent.VK_D)) dx = 1;
 
-            if (c == 'w') dy = -1;
-            else if (c == 's') dy = 1;
-            else if (c == 'a') dx = -1;
-            else if (c == 'd') dx = 1;
-        }
-
-        if (ks.getCharacter() != null && ks.getCharacter() == 'q' && cd == 0) {
-            try {
-                aktywujUmiejetnosc();
-            }catch (IOException e){
-                e.printStackTrace();
-            }
+        if (pressedKeys.contains(KeyEvent.VK_Q) && cd == 0) {
+            aktywujUmiejetnosc();
             return;
         }
 
@@ -51,17 +44,12 @@ public class Czlowiek extends Zwierze {
             Punkt cel = new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
             if (world.sprawdzCzyWGrid(cel)) {
                 this.idz(cel);
+                world.dodajLogi("H ruch");
             }
         }
     }
 
-    private void wykonajRuch(char klawisz) {
-        int dx = 0, dy = 0;
-        if (klawisz == 'w') dy = -1;
-        else if (klawisz == 's') dy = 1;
-        else if (klawisz == 'a') dx = -1;
-        else if (klawisz == 'd') dx = 1;
-
+    private void wykonajRuch(int dx, int dy) {
         if (dx != 0 || dy != 0) {
             Punkt cel = new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
             if (world.sprawdzCzyWGrid(cel)) {
@@ -70,24 +58,24 @@ public class Czlowiek extends Zwierze {
         }
     }
 
-    private void aktywujUmiejetnosc() throws IOException {
-        world.dodajLogi("Człowiek aktywował Szybkość Antylopy!");
+    public void aktywujUmiejetnosc() {
+        world.dodajLogi("H umiejetnosc");
         this.cd = 5;
-        int superRuchy = 5;
+        this.umiejetnoscAktywna = true;
+        this.pozostaloRuchow = 5;
+    }
 
-        while (superRuchy > 0) {
-            world.paintGrid();
+    public boolean czyUmiejetnoscAktywna() {
+        return umiejetnoscAktywna;
+    }
 
-            KeyStroke ks = world.getScreen().readInput();
-            char klawisz = (ks.getCharacter() != null) ? Character.toLowerCase(ks.getCharacter()) : ' ';
-
-            if (klawisz == 'w' || klawisz == 's' || klawisz == 'a' || klawisz == 'd') {
-                wykonajRuch(klawisz);
-                superRuchy--;
-
-                if (superRuchy <= 1 && world.getRandom().nextInt(2) == 0) {
-                    return;
-                }
+    public void wykonajDodatkowyRuch(int dx, int dy) {
+        if (umiejetnoscAktywna && pozostaloRuchow > 0) {
+            wykonajRuch(dx, dy);
+            pozostaloRuchow--;
+            
+            if (pozostaloRuchow == 0) {
+                umiejetnoscAktywna = false;
             }
         }
     }
@@ -108,6 +96,6 @@ public class Czlowiek extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('K', TextColor.ANSI.BLUE_BRIGHT);
+        return new Rys('K', Color.BLUE);
     }
 }
