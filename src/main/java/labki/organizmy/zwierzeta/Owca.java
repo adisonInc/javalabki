@@ -5,31 +5,28 @@ import labki.Rys;
 import labki.Swiat;
 import com.googlecode.lanterna.TextColor;
 
-public class Wilk extends Zwierze {
+public class Owca extends Zwierze {
 
 
-    public Wilk(Swiat swiat, Punkt p) {
+    public Owca(Swiat swiat, Punkt p) {
         super(swiat, p);
-        this.sila = 9;
-        this.inicjatywa = 5;
+        this.sila = 4;
+        this.inicjatywa = 4;
         this.wiek = 0;
     }
 
-    @Override
-    public void akcja() {
-        this.idz();
-    }
+
 
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Wilk(world, p));
+        world.dodajOrganizm(new Owca(world, p));
     }
 
     @Override
     public Rys rysowanie() {
 
-        return new Rys('W', TextColor.ANSI.RED);
+        return new Rys('O', TextColor.ANSI.WHITE_BRIGHT);
     }
 
 

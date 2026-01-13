@@ -1,5 +1,7 @@
 package labki;
 
+import com.googlecode.lanterna.input.InputProvider;
+import com.googlecode.lanterna.input.KeyStroke;
 import labki.organizmy.Organizm;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.screen.Screen;
@@ -17,7 +19,7 @@ public class Swiat {
     private List<String> logi = new ArrayList<>();
     private int numerTury = 0;
     private Screen screen;
-
+    private KeyStroke ostatniKlawisz;
     private Random rand = new Random();
 
 
@@ -44,28 +46,32 @@ public class Swiat {
         grid = new Organizm[N][M];
     }
 
+    private static final TextCharacter PUSTE_POLE = new TextCharacter('.');
+
     public void paintGrid() throws IOException {
         if (screen == null) return;
         screen.clear();
 
         for (int y = 0; y < N; y++) {
+
+            //int offset = (y % 2 == 0) ? 0 : 1;
+            int offset=0;
+
             for (int x = 0; x < M; x++) {
-                TextCharacter tc;
                 if (grid[y][x] != null) {
                     Rys dane = grid[y][x].rysowanie();
-                    tc = new com.googlecode.lanterna.TextCharacter(
+
+                    screen.setCharacter(x * 2 + offset, y, new TextCharacter(
                             dane.symbol,
                             dane.color,
                             TextColor.ANSI.BLACK
-                    );
-
+                    ));
                 } else {
-                    tc = new TextCharacter('.');
+
+                    screen.setCharacter(x * 2 + offset, y, PUSTE_POLE);
                 }
-                screen.setCharacter(x, y, tc);
             }
         }
-
         wypiszLogi();
         screen.refresh();
     }
@@ -74,17 +80,21 @@ public class Swiat {
     public int getGridM() { return M; }
 
     public boolean sprawdzCzyWGrid(Punkt p) {
-        return p.x >= 0 && p.x < M && p.y >= 0 && p.y < N;
+        return p.x() >= 0 && p.x() < M && p.y() >= 0 && p.y() < N;
+    }
+
+    public boolean sprawdzCzyWGrid(int x, int y) {
+        return x >= 0 && x < M && y >= 0 && y < N;
     }
 
     public boolean sprawdzPole(Punkt p) {
-        return grid[p.y][p.x] != null;
+        return grid[p.y()][p.x()] != null;
     }
 
     public Punkt pustySasiad(Punkt start) {
         for (int i = 0; i < 30; i++) {
-            int xr = rand.nextInt(3) - 1 + start.x;
-            int yr = rand.nextInt(3) - 1 + start.y;
+            int xr = rand.nextInt(3) - 1 + start.x();
+            int yr = rand.nextInt(3) - 1 + start.y();
             Punkt rnd = new Punkt(xr, yr);
             if (sprawdzCzyWGrid(rnd) && ktoTutaj(rnd) == null) {
                 return rnd;
@@ -94,7 +104,11 @@ public class Swiat {
     }
 
     public Organizm ktoTutaj(Punkt p) {
-        return grid[p.y][p.x];
+        return grid[p.y()][p.x()];
+    }
+
+    public Organizm ktoTutaj(int x, int y) {
+        return grid[y][x];
     }
 
     public void wykonajTure() {
@@ -113,7 +127,6 @@ public class Swiat {
                 o.incWiek();
             }
         }
-
         czysczenie();
     }
 
@@ -144,8 +157,8 @@ public class Swiat {
     }
 
     public void zmienPoz(Punkt stary, Punkt nowy, Organizm org) {
-        grid[stary.y][stary.x] = null;
-        grid[nowy.y][nowy.x] = org;
+        grid[stary.y()][stary.x()] = null;
+        grid[nowy.y()][nowy.x()] = org;
     }
 
     public void dodajLogi(String s) {
@@ -157,7 +170,7 @@ public class Swiat {
         int row = 0;
         for (String log : logi) {
             if (row < N) {
-                screen.setCharacter(M + 1, row, new TextCharacter(log.charAt(0))); // prosto, można poprawić
+                screen.setCharacter(N + 10, row, new TextCharacter(log.charAt(0)));
                 row++;
             }
         }
@@ -173,6 +186,12 @@ public class Swiat {
         int y = rand.nextInt(N-1);
         return new Punkt(x,y);
     }
+
+    public int losujPrzesuniecie(){
+        int x = rand.nextInt(3)-1;
+
+        return x;
+    }
     public Punkt losujPustyPunky(){
         int mozliwosci = N * M;
         while (mozliwosci>0){
@@ -187,21 +206,53 @@ public class Swiat {
         return numerTury;
     }
     public void wypelnijGrid(Organizm o, int ilosc){
+
         for (int i = 0; i < ilosc; i++) {
-            inicjatywy.add(o);
-            o.setSwiat(this);
             Punkt p = losujPustyPunky();
+            if (p == null) break;
+            o.setSwiat(this);
             o.setPolozenie(p);
-
-            grid[p.y][p.x] = o;
-
+            if (grid[p.y()][p.x()] == null) {
+                inicjatywy.add(o);
+                grid[p.y()][p.x()] = o;
+            }
         }
-
     }
 
+    private long totalAdds = 0;
+
     public void dodajOrganizm(Organizm o) {
-        inicjatywy.add(o);
         Punkt p = o.getPolozenie();
-        grid[p.y][p.x] = o;
+        if (p != null) {
+            if (grid[p.y()][p.x()] == null) {
+                o.setSwiat(this);
+                inicjatywy.add(o);
+                grid[p.y()][p.x()] = o;
+                totalAdds++;
+            } else {
+            }
+        }
+    }
+
+    public long getTotalAdds() { return totalAdds; }
+
+    public Random getRandom() {
+        return rand;
+    }
+
+    public InputProvider getScreen() {
+        return this.screen;
+    }
+
+    public void setOstatniKlawisz(KeyStroke key) {
+        this.ostatniKlawisz = key;
+    }
+
+    public KeyStroke getOstatniKlawisz() {
+        return ostatniKlawisz;
+    }
+
+    public List<Organizm> getOrganizmy() {
+        return inicjatywy;
     }
 }

@@ -13,11 +13,9 @@ public abstract class Organizm {
     protected int sila;
     protected int inicjatywa;
 
-    protected static final Random rand = new Random();
-
     public Organizm(Swiat swiat, Punkt p) {
         this.world = swiat;
-        this.polozenie = new Punkt(p.x, p.y);
+        this.polozenie = new Punkt(p.x(), p.y());
         this.zyje = true;
         this.wiek = 0;
     }
@@ -34,8 +32,7 @@ public abstract class Organizm {
 
     public Punkt getPolozenie() { return polozenie; }
     public void setPolozenie(Punkt p) {
-        this.polozenie.x = p.x;
-        this.polozenie.y = p.y;
+        this.polozenie = p;
     }
 
     public boolean isZyje() { return zyje; }
@@ -50,18 +47,16 @@ public abstract class Organizm {
     public abstract void akcja();
 
     public void rozmnoz(Punkt p) {
-        boolean znaleziono = false;
         int proby = 0;
+        Random rand = world.getRandom();
 
         while (proby < 10) {
             proby++;
-            int rx = rand.nextInt(3) - 1 + p.x; // -1,0,1
-            int ry = rand.nextInt(3) - 1 + p.y;
-            Punkt rnd = new Punkt(rx, ry);
-
-            if (world.sprawdzCzyWGrid(rnd) && world.ktoTutaj(rnd) == null) {
-                urodzDziecko(rnd);
-                znaleziono = true;
+            int rx = rand.nextInt(3) - 1 + p.x(); // -1,0,1
+            int ry = rand.nextInt(3) - 1 + p.y();
+            if (world.sprawdzCzyWGrid(rx, ry) && world.ktoTutaj(rx, ry) == null) {
+                Punkt cel = new Punkt(rx, ry);
+                urodzDziecko(cel);
                 return;
             }
         }
