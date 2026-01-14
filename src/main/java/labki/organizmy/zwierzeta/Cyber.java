@@ -103,6 +103,6 @@ public class Cyber extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('C', Color.YELLOW);
+        return new Rys('C', new Color(200, 0, 218));
     }
 }

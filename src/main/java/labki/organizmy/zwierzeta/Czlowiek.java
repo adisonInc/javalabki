@@ -96,6 +96,6 @@ public class Czlowiek extends Zwierze {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('K', Color.BLUE);
+        return new Rys('K', new Color(255, 106, 106));
     }
 }

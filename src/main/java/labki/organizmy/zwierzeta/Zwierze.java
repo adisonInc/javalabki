@@ -27,14 +27,12 @@ public abstract class Zwierze extends Organizm {
 
     public void walka(Organizm inny){
         if (inny.getSila() <= this.getSila()){
+            world.usunZGrid(inny);
             inny.setZyje(false);
-            Punkt nowaPoz = inny.getPolozenie();
-            Punkt staraPoz = this.getPolozenie();
-            world.zmienPoz(staraPoz,nowaPoz,this);
-            this.setPolozenie(nowaPoz);
+            world.przesunOrganizm(this, inny.getPolozenie());
         }else {
             this.setZyje(false);
-            world.zmienPoz(this.getPolozenie(),this.getPolozenie(),null);
+            world.usunZGrid(this);
         }
     }
 
@@ -60,8 +58,7 @@ public abstract class Zwierze extends Organizm {
                 Organizm zajety = world.ktoTutaj(rx, ry);
                 if(zajety == null) {
                     Punkt cel = new Punkt(rx, ry);
-                    world.zmienPoz(startPoz, cel, this);
-                    this.setPolozenie(cel);
+                    world.przesunOrganizm(this, cel);
                     wykonanoRuch = true;
                 } else {
                     zajety.kolizja(this);
@@ -83,8 +80,7 @@ public abstract class Zwierze extends Organizm {
                 Organizm zajety = world.ktoTutaj(rx, ry);
                 if(zajety == null) {
                     Punkt cel = new Punkt(rx, ry);
-                    world.zmienPoz(startPoz, cel, this);
-                    this.setPolozenie(cel);
+                    world.przesunOrganizm(this, cel);
                     wykonanoRuch = true;
                 } else {
                     zajety.kolizja(this);

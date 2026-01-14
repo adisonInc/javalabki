@@ -28,6 +28,6 @@ public class Jagoda extends Roslina {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('J', Color.DARK_GRAY);
+        return new Rys('J',  new Color(103, 37, 47));
     }
 }

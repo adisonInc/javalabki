@@ -24,17 +24,14 @@ public class ControlPanel extends JPanel {
         setBackground(new Color(40, 40, 40));
         setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.DARK_GRAY));
 
-        // Przycisk wykonania tury
         JButton nextTurnButton = new JButton("Następna Tura (SPACJA)");
         nextTurnButton.addActionListener(e -> executeNextTurn());
         add(nextTurnButton);
 
-        // Informacyjny label
         infoLabel = new JLabel("Tura: 0 | Organizmów: 0");
         infoLabel.setForeground(Color.WHITE);
         add(infoLabel);
 
-        // Timer do automatycznego odswieżania
         Timer updateTimer = new Timer(100, e -> updateInfo());
         updateTimer.start();
     }

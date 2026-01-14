@@ -91,6 +91,7 @@ public class Swiat {
     public void wykonajTure() {
         numerTury++;
         logi.clear();
+        powtorkiInicjatywy();
         sortInicjatywa();
         List<Organizm> kopia = new ArrayList<>(inicjatywy);
 
@@ -129,9 +130,39 @@ public class Swiat {
         return inicjatywy;
     }
 
+    private void powtorkiInicjatywy() {
+        List<Organizm> unikaty = new ArrayList<>();
+        for (Organizm o : inicjatywy) {
+            if (!unikaty.contains(o)) unikaty.add(o);
+        }
+        inicjatywy.clear();
+        inicjatywy.addAll(unikaty);
+    }
+
     public void zmienPoz(Punkt stary, Punkt nowy, Organizm org) {
         grid[stary.y()][stary.x()] = null;
         grid[nowy.y()][nowy.x()] = org;
+    }
+
+    public void przesunOrganizm(Organizm org, Punkt nowy) {
+        if (org == null || nowy == null) return;
+        if (!sprawdzCzyWGrid(nowy)) return;
+        for (int y = 0; y < N; y++) {
+            for (int x = 0; x < M; x++) {
+                if (grid[y][x] == org) grid[y][x] = null;
+            }
+        }
+        grid[nowy.y()][nowy.x()] = org;
+        org.setPolozenie(nowy);
+    }
+
+    public void usunZGrid(Organizm org) {
+        if (org == null) return;
+        for (int y = 0; y < N; y++) {
+            for (int x = 0; x < M; x++) {
+                if (grid[y][x] == org) grid[y][x] = null;
+            }
+        }
     }
 
     public void dodajLogi(String s) {
@@ -143,8 +174,9 @@ public class Swiat {
     }
 
     public Punkt losujPunkt(){
-        int x = rand.nextInt(M-1);
-        int y = rand.nextInt(N-1);
+
+        int x = rand.nextInt(Math.max(1, M));
+        int y = rand.nextInt(Math.max(1, N));
         return new Punkt(x,y);
     }
 
@@ -183,6 +215,9 @@ public class Swiat {
     private long totalAdds = 0;
 
     public void dodajOrganizm(Organizm o) {
+        if (o == null) return;
+        if (inicjatywy.contains(o)) return;
+
         Punkt p = o.getPolozenie();
         if (p != null) {
             if (grid[p.y()][p.x()] == null) {

@@ -15,9 +15,9 @@ public class Mlecz extends Roslina {
 
     @Override
     public void akcja() {
-        rozmnoz(polozenie);
-        rozmnoz(polozenie);
-        rozmnoz(polozenie);
+        super.akcja();
+        super.akcja();
+        super.akcja();
     }
 
     @Override
@@ -29,6 +29,6 @@ public class Mlecz extends Roslina {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('M', Color.DARK_GRAY);
+        return new Rys('M', new Color(9, 68, 0));
     }
 }

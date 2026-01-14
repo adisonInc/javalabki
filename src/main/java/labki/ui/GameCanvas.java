@@ -23,13 +23,9 @@ import labki.Rys;
 import labki.Swiat;
 import labki.organizmy.Organizm;
 import labki.organizmy.rosliny.Barszcz;
-import labki.organizmy.zwierzeta.Antylopa;
-import labki.organizmy.zwierzeta.Cyber;
-import labki.organizmy.zwierzeta.Czlowiek;
-import labki.organizmy.zwierzeta.Lis;
-import labki.organizmy.zwierzeta.Owca;
-import labki.organizmy.zwierzeta.Wilk;
-import labki.organizmy.zwierzeta.Zolw;
+import labki.organizmy.rosliny.Guarana;
+import labki.organizmy.rosliny.Roslina;
+import labki.organizmy.zwierzeta.*;
 
 public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     private final Swiat world;
@@ -68,7 +64,6 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
         g.setColor(Color.DARK_GRAY);
         g.setStroke(new BasicStroke(1));
 
-        // Rysowanie linii siatki
         for (int i = 0; i <= world.getGridM(); i++) {
             g.drawLine(i * cellSize, 0, i * cellSize, gridHeight);
         }
@@ -88,31 +83,59 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     }
 
     private void drawOrganisms(Graphics2D g) {
-        List<Organizm> organisms = world.getOrganizmy();
-        
-        for (Organizm org : organisms) {
-            if (org.isZyje()) {
-                Rys rys = org.rysowanie();
-                int x = org.getPolozenie().x() * cellSize;
-                int y = org.getPolozenie().y() * cellSize;
+        // Quick diagnostic: detect inconsistencies between list and grid
+        java.util.Map<Punkt, java.util.List<Organizm>> claims = new java.util.HashMap<>();
+        for (Organizm o : world.getOrganizmy()) {
+            claims.computeIfAbsent(o.getPolozenie(), k -> new java.util.ArrayList<>()).add(o);
+        }
+        for (java.util.Map.Entry<Punkt, java.util.List<Organizm>> e : claims.entrySet()) {
+            Punkt p = e.getKey();
+            java.util.List<Organizm> list = e.getValue();
+            Organizm gridOcc = world.sprawdzCzyWGrid(p) ? world.ktoTutaj(p) : null;
+            if (list.size() > 1) {
+                System.err.println("Multiple list claims at " + p + " count=" + list.size() + " grid contains: " + gridOcc);
+            } else {
+                Organizm o = list.get(0);
+                if (!world.sprawdzCzyWGrid(p) || gridOcc != o) {
+                    System.err.println("Render mismatch for " + o.getClass().getSimpleName() + " at " + p + " grid contains: " + gridOcc);
+                }
+            }
+        }
 
-                // Rysowanie koloru
-                g.setColor(rys.color);
-                g.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+        for (int y = 0; y < world.getGridN(); y++) {
+            for (int x = 0; x < world.getGridM(); x++) {
+                Organizm org = world.ktoTutaj(x, y);
+                if (org != null && org.isZyje()) {
+                    Rys rys = org.rysowanie();
+                    int px = x * cellSize;
+                    int py = y * cellSize;
 
-                // Rysowanie symbolu
-                g.setColor(Color.BLACK);
-                g.setFont(new Font("Arial", Font.BOLD, cellSize - 10));
-                FontMetrics fm = g.getFontMetrics();
-                String symbol = String.valueOf(rys.symbol);
-                int textX = x + (cellSize - fm.stringWidth(symbol)) / 2;
-                int textY = y + ((cellSize - fm.getHeight()) / 2) + fm.getAscent();
-                g.drawString(symbol, textX, textY);
 
-                // Wyświetlenie informacji o organizmu
-                g.setColor(Color.BLACK);
-                g.setFont(new Font("Arial", Font.PLAIN, 8));
-                g.drawString("" + org.getWiek(), x + 3, y + cellSize - 5);
+                    java.awt.Color textColor = Color.BLACK;
+                    java.awt.Color fill = (rys.color != null) ? rys.color : java.awt.Color.PINK;
+//                    if (org instanceof Roslina){
+//                        textColor = Color.WHITE;
+//                        //fill = textColor.BLACK;
+//                    }
+
+                    g.setColor(fill);
+                    g.fillRect(px + 2, py + 2, Math.max(1, cellSize - 4), Math.max(1, cellSize - 4));
+
+
+                    g.setColor(textColor);
+                    int fontSize = Math.max(6, cellSize - 10);
+                    g.setFont(new Font("Arial", Font.BOLD, fontSize));
+                    FontMetrics fm = g.getFontMetrics();
+                    String symbol = String.valueOf(rys.symbol);
+                    int textX = px + (cellSize - fm.stringWidth(symbol)) / 2;
+                    int textY = py + ((cellSize - fm.getHeight()) / 2) + fm.getAscent();
+                    g.drawString(symbol, textX, textY);
+
+                    g.setColor(java.awt.Color.BLACK);
+
+                    g.setFont(new Font("Arial", Font.PLAIN, 8));
+                    g.drawString("" + org.getWiek(), px + 3, py + cellSize - 5);
+                }
             }
         }
     }
@@ -134,14 +157,14 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
         int gridWidth = world.getGridM() * cellSize;
         int gridHeight = world.getGridN() * cellSize;
         
-        // Sprawdzenie czy klik był w obrębie siatki
+
         if (e.getX() < gridWidth && e.getY() < gridHeight) {
             int gridX = e.getX() / cellSize;
             int gridY = e.getY() / cellSize;
             
             Punkt punkt = new Punkt(gridX, gridY);
             
-            // Sprawdzenie czy pole jest puste
+
             if (world.ktoTutaj(punkt) == null) {
                 showOrganismSelector(punkt);
             }

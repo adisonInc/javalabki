@@ -23,6 +23,6 @@ public class Trawa extends Roslina {
 
     @Override
     public Rys rysowanie() {
-        return new Rys('T', Color.DARK_GRAY);
+        return new Rys('T', new Color(45, 82, 22));
     }
 }

@@ -29,7 +29,7 @@ public class Main {
             Swiat world = Swiat.getSwiat();
             world.setGrid(HEIGHT, WIDTH);
             
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 1; i++) {
                 world.dodajOrganizm(new Wilk(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Owca(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Zolw(world, world.losujPustyPunky()));
@@ -37,10 +37,13 @@ public class Main {
                 world.dodajOrganizm(new Cyber(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Lis(world, world.losujPustyPunky()));
 
+
+            }
+            for (int i = 0; i <5 ; i++) {
                 world.dodajOrganizm(new Barszcz(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Guarana(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Jagoda(world, world.losujPustyPunky()));
-                //world.dodajOrganizm(new Mlecz(world, world.losujPustyPunky()));
+                world.dodajOrganizm(new Mlecz(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Trawa(world, world.losujPustyPunky()));
             }
 

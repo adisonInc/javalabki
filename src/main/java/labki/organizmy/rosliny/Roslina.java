@@ -32,11 +32,10 @@ public abstract class Roslina extends Organizm {
     public void walka(Organizm inny) {
         if (inny.getSila() <= this.getSila()) {
             inny.setZyje(false);
-            world.zmienPoz(inny.getPolozenie(), inny.getPolozenie(), null);
+            world.usunZGrid(inny);
         } else {
             this.setZyje(false);
-            world.zmienPoz(this.getPolozenie(), this.getPolozenie(), inny);
-            inny.setPolozenie(this.getPolozenie());
+            world.przesunOrganizm(inny, this.getPolozenie());
         }
     }
 
