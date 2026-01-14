@@ -6,6 +6,8 @@ import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
 import labki.organizmy.Organizm;
+import labki.organizmy.zwierzeta.Cyber;
+import labki.organizmy.zwierzeta.Zwierze;
 
 public class Barszcz extends Roslina {
     public Barszcz(Swiat swiat, Punkt p) {
@@ -17,10 +19,27 @@ public class Barszcz extends Roslina {
 
     @Override
     public void akcja() {
-        super.akcja();
-        world.dodajLogi("B roslina");
-    }
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dy == 0) continue;
 
+                int nx = this.polozenie.x() + dx;
+                int ny = this.polozenie.y() + dy;
+
+                if (world.sprawdzCzyWGrid(nx, ny)) {
+                    Organizm ofiara = world.ktoTutaj(nx, ny);
+                    if (ofiara != null && ofiara instanceof Zwierze) {
+                        if (!(ofiara instanceof Cyber)) {
+                            ofiara.setZyje(false);
+                            world.dodajLogi("Barszcz zabija sąsiada: " + ofiara.getClass().getSimpleName());
+                        }
+                    }
+                }
+            }
+        }
+
+        super.akcja();
+    }
     @Override
     public void kolizja(Organizm inny) {
         if (inny.getClass() == this.getClass()){

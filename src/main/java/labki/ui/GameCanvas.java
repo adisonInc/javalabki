@@ -22,9 +22,7 @@ import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
 import labki.organizmy.Organizm;
-import labki.organizmy.rosliny.Barszcz;
-import labki.organizmy.rosliny.Guarana;
-import labki.organizmy.rosliny.Roslina;
+import labki.organizmy.rosliny.*;
 import labki.organizmy.zwierzeta.*;
 
 public class GameCanvas extends JPanel implements KeyListener, MouseListener {
@@ -142,10 +140,10 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
 
     private void drawGameInfo(Graphics2D g) {
         int gridHeight = world.getGridN() * cellSize;
-        
+
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 14));
-        
+
         int infoY = gridHeight + 20;
         g.drawString("Tura: " + world.getNumerTury(), 20, infoY);
         g.drawString("Organizmów: " + world.getOrganizmy().size(), 200, infoY);
@@ -156,14 +154,14 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     public void mouseClicked(MouseEvent e) {
         int gridWidth = world.getGridM() * cellSize;
         int gridHeight = world.getGridN() * cellSize;
-        
+
 
         if (e.getX() < gridWidth && e.getY() < gridHeight) {
             int gridX = e.getX() / cellSize;
             int gridY = e.getY() / cellSize;
-            
+
             Punkt punkt = new Punkt(gridX, gridY);
-            
+
 
             if (world.ktoTutaj(punkt) == null) {
                 showOrganismSelector(punkt);
@@ -173,57 +171,66 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
 
     private void showOrganismSelector(Punkt punkt) {
         String[] options = {
-            "Wilk",
-            "Lis",
-            "Owca",
-            "Zołw",
-            "Antylopa",
-            "Cyber",
-            "Człowiek",
-            "Barszcz"
+                "Wilk", "Lis", "Owca", "Zołw", "Antylopa",
+                "Cyber", "Człowiek", "Barszcz Sosnowskiego",
+                "Guarana", "Mlecz", "Trawa", "Wilcza Jagoda"
         };
-        
-        int choice = javax.swing.JOptionPane.showOptionDialog(
-            this,
-            "Wybierz organizm do dodania:",
-            "Dodaj organizm",
-            javax.swing.JOptionPane.DEFAULT_OPTION,
-            javax.swing.JOptionPane.QUESTION_MESSAGE,
-            null,
-            options,
-            options[0]
+
+        // Używamy showInputDialog zamiast showOptionDialog
+        String selected = (String) javax.swing.JOptionPane.showInputDialog(
+                this,
+                "Wybierz organizm do dodania:",
+                "Dodaj organizm",
+                javax.swing.JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                options[0]
         );
-        
-        if (choice >= 0) {
+
+        // Jeśli użytkownik coś wybrał (nie kliknął Anuluj)
+        if (selected != null) {
             Organizm nowyOrganizm = null;
-            
-            switch (choice) {
-                case 0: // Wilk
+
+            // Java 7+ obsługuje Switch na Stringach - to czytelniejsze niż indeksy
+            switch (selected) {
+                case "Wilk":
                     nowyOrganizm = new Wilk(world, punkt);
                     break;
-                case 1: // Lis
+                case "Lis":
                     nowyOrganizm = new Lis(world, punkt);
                     break;
-                case 2: // Owca
+                case "Owca":
                     nowyOrganizm = new Owca(world, punkt);
                     break;
-                case 3: // Zołw
+                case "Zołw":
                     nowyOrganizm = new Zolw(world, punkt);
                     break;
-                case 4: // Antylopa
+                case "Antylopa":
                     nowyOrganizm = new Antylopa(world, punkt);
                     break;
-                case 5: // Cyber
+                case "Cyber":
                     nowyOrganizm = new Cyber(world, punkt);
                     break;
-                case 6: // Człowiek
+                case "Człowiek":
                     nowyOrganizm = new Czlowiek(world, punkt);
                     break;
-                case 7: // Barszcz
+                case "Barszcz Sosnowskiego": // Uważaj na dokładną nazwę ze String[]
                     nowyOrganizm = new Barszcz(world, punkt);
                     break;
+                case "Guarana":
+                    nowyOrganizm = new Guarana(world, punkt);
+                    break;
+                case "Mlecz":
+                    nowyOrganizm = new Mlecz(world, punkt);
+                    break;
+                case "Trawa":
+                    nowyOrganizm = new Trawa(world, punkt);
+                    break;
+                case "Wilcza Jagoda":
+                    nowyOrganizm = new Jagoda(world, punkt);
+                    break;
             }
-            
+
             if (nowyOrganizm != null) {
                 world.dodajOrganizm(nowyOrganizm);
                 repaint();
@@ -234,7 +241,7 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     @Override
     public void keyPressed(KeyEvent e) {
         pressedKeys.add(e.getKeyCode());
-        
+
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             world.wykonajTure();
             repaint();
@@ -249,17 +256,22 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+    }
 
     @Override
-    public void mousePressed(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) {
+    }
 
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+    }
 
     @Override
-    public void mouseEntered(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {
+    }
 
     @Override
-    public void mouseExited(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {
+    }
 }

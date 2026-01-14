@@ -29,7 +29,7 @@ public class Main {
             Swiat world = Swiat.getSwiat();
             world.setGrid(HEIGHT, WIDTH);
             
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 2; i++) {
                 world.dodajOrganizm(new Wilk(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Owca(world, world.losujPustyPunky()));
                 world.dodajOrganizm(new Zolw(world, world.losujPustyPunky()));
