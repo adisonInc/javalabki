@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,7 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     private final Swiat world;
     private final int cellSize = 35;
     private final Set<Integer> pressedKeys = new HashSet<>();
+    private final List<Character> moveQueue = new ArrayList<>();
 
     public GameCanvas(Swiat world) {
         this.world = world;
@@ -42,6 +44,19 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
 
     public Set<Integer> getPressedKeys() {
         return pressedKeys;
+    }
+
+    public Character pollNextMove() {
+        synchronized (moveQueue) {
+            if (moveQueue.isEmpty()) return null;
+            return moveQueue.remove(0);
+        }
+    }
+
+    private void enqueueMove(char c) {
+        synchronized (moveQueue) {
+            moveQueue.add(c);
+        }
     }
 
     @Override
@@ -241,6 +256,12 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
     @Override
     public void keyPressed(KeyEvent e) {
         pressedKeys.add(e.getKeyCode());
+
+        // Kolejkuj ruchy WASD jako pojedyncze wejścia
+        if (e.getKeyCode() == KeyEvent.VK_W) enqueueMove('W');
+        else if (e.getKeyCode() == KeyEvent.VK_S) enqueueMove('S');
+        else if (e.getKeyCode() == KeyEvent.VK_A) enqueueMove('A');
+        else if (e.getKeyCode() == KeyEvent.VK_D) enqueueMove('D');
 
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             world.wykonajTure();

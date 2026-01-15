@@ -25,26 +25,66 @@ public class Czlowiek extends Zwierze {
     public void akcja() {
         if (cd > 0) cd--;
 
-        Set<Integer> pressedKeys = world.getPressedKeys();
-        
+        // Najpierw pobierz pojedynczy ruch z kolejki wejść (jeśli istnieje)
         int dx = 0, dy = 0;
+        Character mv = null;
+        if (world.getGameCanvas() != null) {
+            mv = world.getGameCanvas().pollNextMove();
+        }
 
-        if (pressedKeys.contains(KeyEvent.VK_W)) dy = -1;
-        else if (pressedKeys.contains(KeyEvent.VK_S)) dy = 1;
-        
-        if (pressedKeys.contains(KeyEvent.VK_A)) dx = -1;
-        else if (pressedKeys.contains(KeyEvent.VK_D)) dx = 1;
+        // Jeżeli nie ma kolejki, fallback na przyciski (stara metoda)
+        if (mv == null) {
+            Set<Integer> pressedKeys = world.getPressedKeys();
+            if (pressedKeys.contains(KeyEvent.VK_Q) && cd == 0) {
+                aktywujUmiejetnosc();
+                return;
+            }
 
-        if (pressedKeys.contains(KeyEvent.VK_Q) && cd == 0) {
-            aktywujUmiejetnosc();
-            return;
+            if (pressedKeys.contains(KeyEvent.VK_W)) dy = -1;
+            else if (pressedKeys.contains(KeyEvent.VK_S)) dy = 1;
+
+            if (pressedKeys.contains(KeyEvent.VK_A)) dx = -1;
+            else if (pressedKeys.contains(KeyEvent.VK_D)) dx = 1;
+        } else {
+            // mapuj znak z kolejki na wektor ruchu
+            if (mv == 'W') dy = -1;
+            else if (mv == 'S') dy = 1;
+            else if (mv == 'A') dx = -1;
+            else if (mv == 'D') dx = 1;
         }
 
         if (dx != 0 || dy != 0) {
             Punkt cel = new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
             if (world.sprawdzCzyWGrid(cel)) {
                 this.idz(cel);
-                world.dodajLogi("H ruch");
+                world.dodajLogi("Cz ruch");
+            }
+        }
+
+        // Dodatkowe ruchy gdy umiejętność aktywna (konsumuj kolejne wejścia z kolejki)
+        if (umiejetnoscAktywna && pozostaloRuchow > 0 && world.getGameCanvas() != null) {
+            while (pozostaloRuchow > 0) {
+                Character mv2 = world.getGameCanvas().pollNextMove();
+                if (mv2 == null) break;
+
+                int ddx = 0, ddy = 0;
+                if (mv2 == 'W') ddy = -1;
+                else if (mv2 == 'S') ddy = 1;
+                else if (mv2 == 'A') ddx = -1;
+                else if (mv2 == 'D') ddx = 1;
+
+                if (ddx != 0 || ddy != 0) {
+                    Punkt cel2 = new Punkt(this.polozenie.x() + ddx, this.polozenie.y() + ddy);
+                    if (world.sprawdzCzyWGrid(cel2)) {
+                        this.idz(cel2);
+                        world.dodajLogi("Cz dodatkowy");
+                        pozostaloRuchow--;
+                    }
+                }
+            }
+
+            if (pozostaloRuchow == 0) {
+                umiejetnoscAktywna = false;
             }
         }
     }
@@ -59,7 +99,7 @@ public class Czlowiek extends Zwierze {
     }
 
     public void aktywujUmiejetnosc() {
-        world.dodajLogi("H umiejetnosc");
+        world.dodajLogi("Czlowiek umiejetnosc");
         this.cd = 5;
         this.umiejetnoscAktywna = true;
         this.pozostaloRuchow = 5;

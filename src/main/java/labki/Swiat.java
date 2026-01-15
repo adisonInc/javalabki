@@ -46,6 +46,10 @@ public class Swiat {
         this.gameCanvas = canvas;
     }
 
+    public GameCanvas getGameCanvas() {
+        return this.gameCanvas;
+    }
+
     public Set<Integer> getPressedKeys() {
         if (gameCanvas != null) {
             return gameCanvas.getPressedKeys();
