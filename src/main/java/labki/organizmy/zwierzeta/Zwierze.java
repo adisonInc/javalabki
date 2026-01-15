@@ -44,8 +44,8 @@ public abstract class Zwierze extends Organizm {
         Punkt startPoz = this.polozenie;
 
         while(proby > 0 && !wykonanoRuch) {
-            int dx = rand.nextInt(3) - 1; // -1,0,1
-            int dy = rand.nextInt(3) - 1; // -1,0,1
+            int dx = rand.nextInt(3) - 1;
+            int dy = rand.nextInt(3) - 1;
             if(dx == 0 && dy == 0) {
                 proby--;
                 continue;

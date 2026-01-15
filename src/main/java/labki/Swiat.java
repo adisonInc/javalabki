@@ -8,7 +8,7 @@ import labki.organizmy.Organizm;
 public class Swiat {
     private static Swiat instance = null;
 
-    private int N, M; // Wysokość, Szerokość
+    private int N, M; 
     private Organizm[][] grid;
     private final List<Organizm> inicjatywy = new ArrayList<>();
     private final List<String> logi = new ArrayList<>();
@@ -34,14 +34,13 @@ public class Swiat {
         numerTury++;
         logi.clear();
 
-        // Sortowanie po inicjatywie
         inicjatywy.sort((a, b) -> {
             if (a.getInicjatywa() != b.getInicjatywa())
                 return b.getInicjatywa() - a.getInicjatywa();
             return b.getWiek() - a.getWiek();
         });
 
-        // Kopia listy, aby uniknąć błędów modyfikacji w pętli
+        
         List<Organizm> kopia = new ArrayList<>(inicjatywy);
         for (Organizm o : kopia) {
             if (o.isZyje()) {
@@ -87,7 +86,7 @@ public class Swiat {
             int rx = rand.nextInt(3) - 1 + start.x();
             int ry = rand.nextInt(3) - 1 + start.y();
 
-            // Pomiń, jeśli wylosowało to samo pole, na którym stoimy
+
             if (rx == start.x() && ry == start.y()) continue;
 
             Punkt p = new Punkt(rx, ry);
@@ -95,7 +94,7 @@ public class Swiat {
                 return p;
             }
         }
-        // Jeśli nie znajdzie pustego sąsiada po 30 próbach, zwraca punkt startowy
+
         return start;
     }
     public Organizm ktoTutaj(int x, int y) {
@@ -106,20 +105,16 @@ public class Swiat {
     public void przesunOrganizm(Organizm org, Punkt nowy) {
         if (org == null || !sprawdzCzyWGrid(nowy)) return;
 
-        // Czyścimy stare miejsce
         Punkt stary = org.getPolozenie();
         if (stary != null && grid[stary.y()][stary.x()] == org) {
             grid[stary.y()][stary.x()] = null;
         }
 
-        // Ustawiamy nowe
         grid[nowy.y()][nowy.x()] = org;
         org.setPolozenie(nowy);
     }
 
-    // Metoda pomocnicza do walki (np. przesuwanie wygranego na miejsce przegranego)
     public void zmienPoz(Punkt stary, Punkt nowy, Organizm org) {
-        if(stary != null && sprawdzCzyWGrid(stary)) grid[stary.y()][stary.x()] = null;
         if(nowy != null && sprawdzCzyWGrid(nowy)) grid[nowy.y()][nowy.x()] = org;
         if(org != null) org.setPolozenie(nowy);
     }
@@ -140,10 +135,9 @@ public class Swiat {
         }
     }
     public int losujPrzesuniecie() {
-        // Zwraca -1, 0 lub 1
-        return rand.nextInt(3) - 1;
-    }
-    public Punkt losujPustyPunkt() { // Zostawiam Twoją nazwę metody :)
+        
+        
+    public Punkt losujPustyPunkt() { 
         for (int i = 0; i < 50; i++) {
             int x = rand.nextInt(M);
             int y = rand.nextInt(N);
@@ -162,9 +156,9 @@ public class Swiat {
     public Random getRandom() { return rand; }
     public int getNumerTury() { return numerTury; }
 
-    // Dla kompatybilności z Twoim kodem klawiszy
+    
     private labki.ui.GameCanvas gameCanvas;
-    public void setGameCanvas(labki.ui.GameCanvas gc) { this.gameCanvas = gc; }
+ gc) { this.gameCanvas = gc; }
     public java.util.Set<Integer> getPressedKeys() {
         return gameCanvas != null ? gameCanvas.getPressedKeys() : new java.util.HashSet<>();
     }

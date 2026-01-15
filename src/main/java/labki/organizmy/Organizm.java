@@ -1,12 +1,13 @@
 package labki.organizmy;
 
 import java.util.Random;
+
 import labki.Punkt;
 import labki.Rys;
 import labki.Swiat;
 
 public abstract class Organizm {
-    protected Swiat swiat; // Zmiana nazwy pola
+    protected Swiat swiat;
     protected Punkt polozenie;
     protected boolean zyje;
     protected int wiek;
@@ -27,7 +28,6 @@ public abstract class Organizm {
 
     public void rozmnoz(Punkt p) {
         Random rand = swiat.getRandom();
-        // Szukamy wolnego pola obok
         for (int i = 0; i < 10; i++) {
             int dx = rand.nextInt(3) - 1;
             int dy = rand.nextInt(3) - 1;
@@ -41,7 +41,6 @@ public abstract class Organizm {
         }
     }
 
-    // Gettery i Settery
     public int getSila() { return sila; }
     public void setSila(int s) { sila = s; }
     public int getInicjatywa() { return inicjatywa; }

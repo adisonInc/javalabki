@@ -4,10 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.List;
+
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.Timer;
+
 import labki.Swiat;
 
 public class LogsPanel extends JPanel {
@@ -28,7 +30,7 @@ public class LogsPanel extends JPanel {
 
         add(new JScrollPane(obszarTekstu), BorderLayout.CENTER);
 
-        // Odświeżanie logów co 200ms
+        
         new Timer(200, e -> odswiezLogi()).start();
     }
 
@@ -36,7 +38,7 @@ public class LogsPanel extends JPanel {
         List<String> logi = swiat.getLogi();
         StringBuilder sb = new StringBuilder();
 
-        // Pokaż tylko ostatnie komunikaty, żeby nie zapchać pamięci
+
         int start = Math.max(0, logi.size() - 30);
         for (int i = start; i < logi.size(); i++) {
             sb.append(logi.get(i)).append("\n");

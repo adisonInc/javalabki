@@ -10,10 +10,9 @@ import labki.Swiat;
 import labki.organizmy.Organizm;
 
 public class Czlowiek extends Zwierze {
-    private int cd = 0;
+    private int cd = 5;
     private boolean umiejetnoscAktywna = false;
     private int pozostaloRuchow = 0;
-    private int turUmiejetnosci = 0;
 
     public Czlowiek(Swiat swiat, Punkt p) {
         super(swiat, p);
@@ -26,92 +25,112 @@ public class Czlowiek extends Zwierze {
     public void akcja() {
         if (cd > 0) cd--;
 
-        Set<Integer> keys = swiat.getPressedKeys();
 
-        if (keys.contains(KeyEvent.VK_U) && cd == 0 && !umiejetnoscAktywna) {
-            aktywujUmiejetnosc();
-        }
-
-        if (!czyWcisnietoStrzalke(keys)) {
-            return;
-        }
-
-        int dystans = 1;
-        boolean ruchZablokowany = false;
-
-        if (umiejetnoscAktywna) {
-            if (turUmiejetnosci < 3) {
-                dystans = 2;
-            } else {
-
-                if (swiat.getRandom().nextDouble() < 0.5) {
-                    dystans = 0;
-                    ruchZablokowany = true;
-                }
-            }
-        }
-
-
-        if (ruchZablokowany) {
-
-            swiat.dodajLogi("Szybkosc Antylopy: pech! Czlowiek stoi w miejscu.");
-        } else {
-            Punkt cel = pobierzCelZKeys(dystans);
-
-            if (cel != null && !cel.equals(this.polozenie)) { // Dodatkowe zabezpieczenie
-                if (swiat.sprawdzCzyWGrid(cel)) {
-                    this.idz(cel);
-                }
-            }
-        }
-
-        if (umiejetnoscAktywna) {
-            turUmiejetnosci++;
-            pozostaloRuchow--;
-            if (pozostaloRuchow <= 0) {
-                umiejetnoscAktywna = false;
-                turUmiejetnosci = 0;
-                swiat.dodajLogi("Szybkosc Antylopy wygasla.");
-            }
-        }
-    }
-
-    private boolean czyWcisnietoStrzalke(Set<Integer> keys) {
-        return keys.contains(KeyEvent.VK_UP) ||
-                keys.contains(KeyEvent.VK_DOWN) ||
-                keys.contains(KeyEvent.VK_LEFT) ||
-                keys.contains(KeyEvent.VK_RIGHT);
-    }
-
-    private Punkt pobierzCelZKeys(int dystans) {
-        Set<Integer> keys = swiat.getPressedKeys();
         int dx = 0, dy = 0;
+        Character mv = null;
+        if (world.getGameCanvas() != null) {
+            mv = world.getGameCanvas().pollNextMove();
+        }
 
-        if (keys.contains(KeyEvent.VK_UP)) dy = -dystans;
-        else if (keys.contains(KeyEvent.VK_DOWN)) dy = dystans;
-        else if (keys.contains(KeyEvent.VK_LEFT)) dx = -dystans;
-        else if (keys.contains(KeyEvent.VK_RIGHT)) dx = dystans;
-        else return null;
 
-        return new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
+        if (mv == null) {
+            Set<Integer> pressedKeys = world.getPressedKeys();
+            if (pressedKeys.contains(KeyEvent.VK_Q) && cd == 0) {
+                aktywujUmiejetnosc();
+                return;
+            }
+
+            if (pressedKeys.contains(KeyEvent.VK_W)) dy = -1;
+            else if (pressedKeys.contains(KeyEvent.VK_S)) dy = 1;
+
+            if (pressedKeys.contains(KeyEvent.VK_A)) dx = -1;
+            else if (pressedKeys.contains(KeyEvent.VK_D)) dx = 1;
+        } else {
+            if (mv == 'W') dy = -1;
+            else if (mv == 'S') dy = 1;
+            else if (mv == 'A') dx = -1;
+            else if (mv == 'D') dx = 1;
+        }
+
+        if (dx != 0 || dy != 0) {
+            Punkt cel = new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
+            if (world.sprawdzCzyWGrid(cel)) {
+                this.idz(cel);
+                world.dodajLogi("Cz ruch");
+            }
+        }
+
+
+        if (umiejetnoscAktywna && pozostaloRuchow > 0 && world.getGameCanvas() != null) {
+            while (pozostaloRuchow > 0) {
+                Character mv2 = world.getGameCanvas().pollNextMove();
+                if (mv2 == null) break;
+
+                int ddx = 0, ddy = 0;
+                if (mv2 == 'W') ddy = -1;
+                else if (mv2 == 'S') ddy = 1;
+                else if (mv2 == 'A') ddx = -1;
+                else if (mv2 == 'D') ddx = 1;
+
+                if (ddx != 0 || ddy != 0) {
+                    Punkt cel2 = new Punkt(this.polozenie.x() + ddx, this.polozenie.y() + ddy);
+                    if (world.sprawdzCzyWGrid(cel2)) {
+                        this.idz(cel2);
+                        world.dodajLogi("Cz dodatkowy");
+                        pozostaloRuchow--;
+                    }
+                }
+            }
+
+            if (pozostaloRuchow == 0) {
+                umiejetnoscAktywna = false;
+            }
+        }
+    }
+
+    private void wykonajRuch(int dx, int dy) {
+        if (dx != 0 || dy != 0) {
+            Punkt cel = new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
+            if (world.sprawdzCzyWGrid(cel)) {
+                this.idz(cel);
+            }
+        }
     }
 
     public void aktywujUmiejetnosc() {
-        swiat.dodajLogi("Czlowiek aktywuje Szybkosc Antylopy!");
-        this.cd = 10;
+        world.dodajLogi("Czlowiek umiejetnosc");
+        this.cd = 5;
         this.umiejetnoscAktywna = true;
         this.pozostaloRuchow = 5;
-        this.turUmiejetnosci = 0;
+    }
+
+    public boolean czyUmiejetnoscAktywna() {
+        return umiejetnoscAktywna;
+    }
+
+    public void wykonajDodatkowyRuch(int dx, int dy) {
+        if (umiejetnoscAktywna && pozostaloRuchow > 0) {
+            wykonajRuch(dx, dy);
+            pozostaloRuchow--;
+            
+            if (pozostaloRuchow == 0) {
+                umiejetnoscAktywna = false;
+            }
+        }
     }
 
     @Override
     public void kolizja(Organizm napastnik) {
-        super.kolizja(napastnik);
+        if (napastnik instanceof Czlowiek) {
+            this.rozmnoz(this.polozenie);
+        } else {
+            super.kolizja(napastnik);
+        }
     }
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        swiat.dodajOrganizm(new Czlowiek(swiat, p));
+        world.dodajOrganizm(new Czlowiek(world, p));
     }
 
     @Override

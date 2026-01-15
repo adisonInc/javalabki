@@ -6,14 +6,16 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -25,24 +27,36 @@ import labki.organizmy.rosliny.*;
 import labki.organizmy.zwierzeta.*;
 
 public class GameCanvas extends JPanel implements KeyListener, MouseListener {
-    private final Swiat swiat;
-    private final int rozmiarPola = 35; // Wielkość kratki w pikselach
-    private final Set<Integer> wcisnieteKlawisze = new HashSet<>();
+    private final Swiat world;
+    private final int cellSize = 35;
+    private final Set<Integer> pressedKeys = new HashSet<>();
+    private final List<Character> moveQueue = new ArrayList<>();
 
-    public GameCanvas(Swiat swiat) {
-        this.swiat = swiat;
+    public GameCanvas(Swiat world) {
+        this.world = world;
         setBackground(Color.BLACK);
         setFocusable(true);
-
-        // Dodajemy listenery, żeby gra reagowała na klawiaturę i myszkę
         SwingUtilities.invokeLater(() -> {
-            addKeyListener(this);
-            addMouseListener(this);
+            addKeyListener(GameCanvas.this);
+            addMouseListener(GameCanvas.this);
         });
     }
 
     public Set<Integer> getPressedKeys() {
-        return wcisnieteKlawisze;
+        return pressedKeys;
+    }
+
+    public Character pollNextMove() {
+        synchronized (moveQueue) {
+            if (moveQueue.isEmpty()) return null;
+            return moveQueue.remove(0);
+        }
+    }
+
+    private void enqueueMove(char c) {
+        synchronized (moveQueue) {
+            moveQueue.add(c);
+        }
     }
 
     @Override
@@ -50,135 +64,182 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
-        rysujSiatke(g2d);
-        rysujOrganizmy(g2d);
-        rysujInfo(g2d);
+        drawGrid(g2d);
+        drawOrganisms(g2d);
+        drawGameInfo(g2d);
     }
 
-    private void rysujSiatke(Graphics2D g) {
-        int szerokosc = swiat.getGridM() * rozmiarPola;
-        int wysokosc = swiat.getGridN() * rozmiarPola;
+    private void drawGrid(Graphics2D g) {
+        int gridWidth = world.getGridM() * cellSize;
+        int gridHeight = world.getGridN() * cellSize;
 
         g.setColor(Color.DARK_GRAY);
         g.setStroke(new BasicStroke(1));
 
-        // Rysowanie linii pionowych
-        for (int i = 0; i <= swiat.getGridM(); i++) {
-            g.drawLine(i * rozmiarPola, 0, i * rozmiarPola, wysokosc);
+        for (int i = 0; i <= world.getGridM(); i++) {
+            g.drawLine(i * cellSize, 0, i * cellSize, gridHeight);
         }
-        // Rysowanie linii poziomych
-        for (int i = 0; i <= swiat.getGridN(); i++) {
-            g.drawLine(0, i * rozmiarPola, szerokosc, i * rozmiarPola);
+        for (int i = 0; i <= world.getGridN(); i++) {
+            g.drawLine(0, i * cellSize, gridWidth, i * cellSize);
         }
 
-        // Tło planszy (lekko szare pola)
+
         g.setColor(new Color(20, 20, 20));
-        for (int y = 0; y < swiat.getGridN(); y++) {
-            for (int x = 0; x < swiat.getGridM(); x++) {
-                g.fillRect(x * rozmiarPola, y * rozmiarPola, rozmiarPola, rozmiarPola);
+        for (int y = 0; y < world.getGridN(); y++) {
+            for (int x = 0; x < world.getGridM(); x++) {
+                int px = x * cellSize;
+                int py = y * cellSize;
+                g.fillRect(px, py, cellSize, cellSize);
             }
         }
     }
 
-    private void rysujOrganizmy(Graphics2D g) {
-        // Przechodzimy po każdym polu planszy
-        for (int y = 0; y < swiat.getGridN(); y++) {
-            for (int x = 0; x < swiat.getGridM(); x++) {
+    private void drawOrganisms(Graphics2D g) {
+        java.util.Map<Punkt, java.util.List<Organizm>> claims = new java.util.HashMap<>();
+        for (Organizm o : world.getOrganizmy()) {
+            claims.computeIfAbsent(o.getPolozenie(), k -> new java.util.ArrayList<>()).add(o);
+        }
+        for (java.util.Map.Entry<Punkt, java.util.List<Organizm>> e : claims.entrySet()) {
+            Punkt p = e.getKey();
+            java.util.List<Organizm> list = e.getValue();
+            Organizm gridOcc = world.sprawdzCzyWGrid(p) ? world.ktoTutaj(p) : null;
+            if (list.size() > 1) {
+                System.err.println("Multiple list claims at " + p + " count=" + list.size() + " grid contains: " + gridOcc);
+            } else {
+                Organizm o = list.get(0);
+                if (!world.sprawdzCzyWGrid(p) || gridOcc != o) {
+                    System.err.println("Render mismatch for " + o.getClass().getSimpleName() + " at " + p + " grid contains: " + gridOcc);
+                }
+            }
+        }
 
-                Organizm org = swiat.ktoTutaj(x, y);
-
+        for (int y = 0; y < world.getGridN(); y++) {
+            for (int x = 0; x < world.getGridM(); x++) {
+                Organizm org = world.ktoTutaj(x, y);
                 if (org != null && org.isZyje()) {
                     Rys rys = org.rysowanie();
+                    int px = x * cellSize;
+                    int py = y * cellSize;
 
-                    int px = x * rozmiarPola;
-                    int py = y * rozmiarPola;
 
-                    // Rysuj kwadrat (ciało organizmu)
-                    g.setColor(rys.color != null ? rys.color : Color.PINK);
-                    g.fillRect(px + 2, py + 2, rozmiarPola - 4, rozmiarPola - 4);
+                    java.awt.Color textColor = Color.BLACK;
+                    java.awt.Color fill = (rys.color != null) ? rys.color : java.awt.Color.PINK;
 
-                    // Rysuj literkę
-                    g.setColor(Color.BLACK);
-                    g.setFont(new Font("Arial", Font.BOLD, 20));
+                    g.setColor(fill);
+                    g.fillRect(px + 2, py + 2, Math.max(1, cellSize - 4), Math.max(1, cellSize - 4));
 
-                    String symbol = String.valueOf(rys.symbol);
+
+                    g.setColor(textColor);
+                    int fontSize = Math.max(6, cellSize - 10);
+                    g.setFont(new Font("Arial", Font.BOLD, fontSize));
                     FontMetrics fm = g.getFontMetrics();
-                    int textX = px + (rozmiarPola - fm.stringWidth(symbol)) / 2;
-                    int textY = py + ((rozmiarPola - fm.getHeight()) / 2) + fm.getAscent();
-
+                    String symbol = String.valueOf(rys.symbol);
+                    int textX = px + (cellSize - fm.stringWidth(symbol)) / 2;
+                    int textY = py + ((cellSize - fm.getHeight()) / 2) + fm.getAscent();
                     g.drawString(symbol, textX, textY);
 
-                    // Rysuj wiek (mała czcionka na dole)
-                    g.setFont(new Font("Arial", Font.PLAIN, 10));
-                    g.drawString("" + org.getWiek(), px + 2, py + rozmiarPola - 2);
+                    g.setColor(java.awt.Color.BLACK);
+
+                    g.setFont(new Font("Arial", Font.PLAIN, 8));
+                    g.drawString("" + org.getWiek(), px + 3, py + cellSize - 5);
                 }
             }
         }
     }
 
-    private void rysujInfo(Graphics2D g) {
-        int infoY = swiat.getGridN() * rozmiarPola + 20;
+    private void drawGameInfo(Graphics2D g) {
+        int gridHeight = world.getGridN() * cellSize;
 
         g.setColor(Color.WHITE);
-        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        g.setFont(new Font("Arial", Font.PLAIN, 14));
 
-        g.drawString("Strzałki: Ruch Człowieka | 'U': Super Umiejętność | Spacja: Nowa Tura", 20, infoY);
+        int infoY = gridHeight + 20;
+        g.drawString("Tura: " + world.getNumerTury(), 20, infoY);
+        g.drawString("Organizmów: " + world.getOrganizmy().size(), 200, infoY);
+        g.drawString("Kliknij na pole aby dodać organizm", 500, infoY);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        int szerokoscPlanszy = swiat.getGridM() * rozmiarPola;
-        int wysokoscPlanszy = swiat.getGridN() * rozmiarPola;
+        int gridWidth = world.getGridM() * cellSize;
+        int gridHeight = world.getGridN() * cellSize;
 
-        if (e.getX() < szerokoscPlanszy && e.getY() < wysokoscPlanszy) {
-            int x = e.getX() / rozmiarPola;
-            int y = e.getY() / rozmiarPola;
 
-            Punkt p = new Punkt(x, y);
+        if (e.getX() < gridWidth && e.getY() < gridHeight) {
+            int gridX = e.getX() / cellSize;
+            int gridY = e.getY() / cellSize;
+        if (e.getX() < gridWidth && e.getY() < gridHeight) {
+            int gridX = e.getX() / cellSize;
+            int gridY = e.getY() / cellSize;
 
-            if (swiat.ktoTutaj(p) == null) {
-                pokazMenuDodawania(p);
-            }
+            Punkt punkt = new Punkt(gridX, gridY);            }
         }
     }
 
-    private void pokazMenuDodawania(Punkt punkt) {
-        String[] opcje = {
-                "Wilk", "Lis", "Owca", "Zolw", "Antylopa",
-                "Cyber", "Czlowiek", "Barszcz",
-                "Guarana", "Mlecz", "Trawa", "Jagoda"
+    private void showOrganismSelector(Punkt punkt) {
+        String[] options = {
+                "Wilk", "Lis", "Owca", "Zołw", "Antylopa",
+                "Cyber", "Człowiek", "Barszcz Sosnowskiego",
+                "Guarana", "Mlecz", "Trawa", "Wilcza Jagoda"
         };
 
-        String wybrany = (String) JOptionPane.showInputDialog(
+
+        String selected = (String) javax.swing.JOptionPane.showInputDialog(
                 this,
-                "Wybierz co dodać:",
-                "Dodaj Organizm",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                opcje,
-                opcje[0]
+                "Wybierz organizm do dodania:",
+                "Dodaj organizm",
+                javax.swing.JOptionPane.PLAIN_MESSAGE,
+
+                options,
+                options[0]
         );
 
-        if (wybrany != null) {
-            Organizm nowy = null;
+        
+        if (selected != null) {
+            Organizm nowyOrganizm = null;
 
-            switch (wybrany) {
-                case "Wilk": nowy = new Wilk(swiat, punkt); break;
-                case "Lis": nowy = new Lis(swiat, punkt); break;
-                case "Owca": nowy = new Owca(swiat, punkt); break;
-                case "Zolw": nowy = new Zolw(swiat, punkt); break;
-                case "Antylopa": nowy = new Antylopa(swiat, punkt); break;
-                case "Cyber": nowy = new Cyber(swiat, punkt); break;
-                case "Czlowiek": nowy = new Czlowiek(swiat, punkt); break;
-                case "Barszcz": nowy = new Barszcz(swiat, punkt); break;
-                case "Guarana": nowy = new Guarana(swiat, punkt); break;
-                case "Mlecz": nowy = new Mlecz(swiat, punkt); break;
-                case "Trawa": nowy = new Trawa(swiat, punkt); break;
-                case "Jagoda": nowy = new Jagoda(swiat, punkt); break;
+
+            switch (selected) {
+                case "Wilk":
+                    nowyOrganizm = new Wilk(world, punkt);
+                    break;
+                case "Lis":
+                    nowyOrganizm = new Lis(world, punkt);
+                    break;
+                case "Owca":
+                    nowyOrganizm = new Owca(world, punkt);
+                    break;
+                case "Zołw":
+                    nowyOrganizm = new Zolw(world, punkt);
+                    break;
+                case "Antylopa":
+                    nowyOrganizm = new Antylopa(world, punkt);
+                    break;
+                case "Cyber":
+                    nowyOrganizm = new Cyber(world, punkt);
+                    break;
+                case "Człowiek":
+                    nowyOrganizm = new Czlowiek(world, punkt);
+                    break;
+                case "Barszcz Sosnowskiego": 
+                    nowyOrganizm = new Barszcz(world, punkt);
+                    break;
+                case "Guarana":
+                    nowyOrganizm = new Guarana(world, punkt);
+                    break;
+                case "Mlecz":
+                    nowyOrganizm = new Mlecz(world, punkt);
+                    break;
+                case "Trawa":
+                    nowyOrganizm = new Trawa(world, punkt);
+                    break;
+                case "Wilcza Jagoda":
+                    nowyOrganizm = new Jagoda(world, punkt);
+                    break;
             }
 
-            if (nowy != null) {
-                swiat.dodajOrganizm(nowy);
+            if (nowyOrganizm != null) {
+                world.dodajOrganizm(nowyOrganizm);
                 repaint();
             }
         }
@@ -186,10 +247,16 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        wcisnieteKlawisze.add(e.getKeyCode());
+        pressedKeys.add(e.getKeyCode());
+
+
+        if (e.getKeyCode() == KeyEvent.VK_W) enqueueMove('W');
+        else if (e.getKeyCode() == KeyEvent.VK_S) enqueueMove('S');
+        else if (e.getKeyCode() == KeyEvent.VK_A) enqueueMove('A');
+        else if (e.getKeyCode() == KeyEvent.VK_D) enqueueMove('D');
 
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            swiat.wykonajTure();
+            world.wykonajTure();
             repaint();
         } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             System.exit(0);
@@ -198,13 +265,26 @@ public class GameCanvas extends JPanel implements KeyListener, MouseListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
-        wcisnieteKlawisze.remove(e.getKeyCode());
+        pressedKeys.remove(e.getKeyCode());
     }
 
-    // Nieużywane metody interfejsów (muszą być puste)
-    @Override public void keyTyped(KeyEvent e) {}
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
 }
