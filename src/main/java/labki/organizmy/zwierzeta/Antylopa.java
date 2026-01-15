@@ -22,7 +22,7 @@ public class Antylopa extends Zwierze {
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Antylopa(world, p));
+        swiat.dodajOrganizm(new Antylopa(swiat, p));
     }
 
     @Override
@@ -33,10 +33,10 @@ public class Antylopa extends Zwierze {
     @Override
     public void akcja(){
         this.idz();
-        world.dodajLogi("A ruch1");
+        swiat.dodajLogi("A ruch1");
         if(this.isZyje()){
             this.idz();
-            world.dodajLogi("A ruch2");
+            swiat.dodajLogi("A ruch2");
         }
     }
 
@@ -44,16 +44,16 @@ public class Antylopa extends Zwierze {
     public void kolizja(Organizm inny){
       if(inny instanceof  Antylopa){
             this.rozmnoz(this.getPolozenie());
-            world.dodajLogi("A rozmnazanie");
+            swiat.dodajLogi("A rozmnazanie");
             return;
         }
       if (inny != null) {
-        int los= world.getRandom().nextInt(10);
+        int los= swiat.getRandom().nextInt(10);
           if (los>5){
-              world.dodajLogi("A ucieczka");
-              idz(world.pustySasiad(this.getPolozenie()));
+              swiat.dodajLogi("A ucieczka");
+              idz(swiat.pustySasiad(this.getPolozenie()));
           }else {
-              world.dodajLogi("A walka");
+              swiat.dodajLogi("A walka");
               walka(inny);
           }
       }

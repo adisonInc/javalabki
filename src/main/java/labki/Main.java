@@ -26,31 +26,31 @@ public class Main {
             frame.setLocationRelativeTo(null);
             frame.setResizable(true);
 
-            Swiat world = Swiat.getSwiat();
-            world.setGrid(HEIGHT, WIDTH);
+            Swiat swiat = Swiat.getSwiat();
+            swiat.setGrid(HEIGHT, WIDTH);
             
             for (int i = 0; i < 2; i++) {
-                world.dodajOrganizm(new Wilk(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Owca(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Zolw(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Antylopa(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Cyber(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Lis(world, world.losujPustyPunky()));
+                swiat.dodajOrganizm(new Wilk(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Owca(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Zolw(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Antylopa(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Cyber(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Lis(swiat, swiat.losujPustyPunkt()));
 
 
             }
             for (int i = 0; i <5 ; i++) {
-                world.dodajOrganizm(new Barszcz(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Guarana(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Jagoda(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Mlecz(world, world.losujPustyPunky()));
-                world.dodajOrganizm(new Trawa(world, world.losujPustyPunky()));
+                swiat.dodajOrganizm(new Barszcz(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Guarana(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Jagoda(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Mlecz(swiat, swiat.losujPustyPunkt()));
+                swiat.dodajOrganizm(new Trawa(swiat, swiat.losujPustyPunkt()));
             }
 
 
-            world.dodajOrganizm(new Czlowiek(world, world.losujPunkt()));
+            swiat.dodajOrganizm(new Czlowiek(swiat, swiat.losujPunkt()));
 
-            GamePanel gamePanel = new GamePanel(world);
+            GamePanel gamePanel = new GamePanel(swiat);
             frame.setContentPane(gamePanel);
             frame.setVisible(true);
         });

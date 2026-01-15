@@ -20,8 +20,8 @@ public class Lis extends Zwierze {
     @Override
     public void akcja() {
         for (int i = 0; i < 10; i++) {
-            int vx = world.losujPrzesuniecie();
-            int vy = world.losujPrzesuniecie();
+            int vx = swiat.losujPrzesuniecie();
+            int vy = swiat.losujPrzesuniecie();
 
             if (vx == 0 && vy == 0) {
                 continue;
@@ -29,12 +29,12 @@ public class Lis extends Zwierze {
 
             Punkt cel = new Punkt(this.polozenie.x() + vx, this.polozenie.y() + vy);
 
-            if (world.sprawdzCzyWGrid(cel)) {
-                Organizm ofiara = world.ktoTutaj(cel);
+            if (swiat.sprawdzCzyWGrid(cel)) {
+                Organizm ofiara = swiat.ktoTutaj(cel);
 
                 if (ofiara == null || ofiara.getSila() <= this.getSila()) {
                     this.idz(cel);
-                    world.dodajLogi("L ruch ");
+                    swiat.dodajLogi("L ruch ");
                     return;
                 }
             }
@@ -44,7 +44,7 @@ public class Lis extends Zwierze {
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Lis(world, p));
+        swiat.dodajOrganizm(new Lis(swiat, p));
     }
 
     @Override

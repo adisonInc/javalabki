@@ -16,12 +16,12 @@ public class Jagoda extends Roslina {
     @Override
     public void kolizja(Organizm inny){
         inny.setZyje(false);
-        world.zmienPoz(inny.getPolozenie(),inny.getPolozenie(),null);
+        swiat.zmienPoz(inny.getPolozenie(),inny.getPolozenie(),null);
     }
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Jagoda(world,p));
+        swiat.dodajOrganizm(new Jagoda(swiat,p));
 
 
     }

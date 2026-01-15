@@ -19,7 +19,7 @@ public class Owca extends Zwierze {
     @Override
     public void akcja() {
         super.akcja();
-        world.dodajLogi("O ruch");
+        swiat.dodajLogi("O ruch");
     }
 
 
@@ -27,7 +27,7 @@ public class Owca extends Zwierze {
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Owca(world, p));
+        swiat.dodajOrganizm(new Owca(swiat, p));
     }
 
     @Override

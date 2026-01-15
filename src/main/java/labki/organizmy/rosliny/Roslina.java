@@ -15,7 +15,7 @@ public abstract class Roslina extends Organizm {
 
     @Override
     public void akcja() {
-       int los = world.getRandom().nextInt(20);
+       int los = swiat.getRandom().nextInt(20);
        if(los==0){
            rozmnoz(this.polozenie);
        }
@@ -32,10 +32,10 @@ public abstract class Roslina extends Organizm {
     public void walka(Organizm inny) {
         if (inny.getSila() <= this.getSila()) {
             inny.setZyje(false);
-            world.usunZGrid(inny);
+            swiat.usunZGrid(inny);
         } else {
             this.setZyje(false);
-            world.przesunOrganizm(inny, this.getPolozenie());
+            swiat.przesunOrganizm(inny, this.getPolozenie());
         }
     }
 

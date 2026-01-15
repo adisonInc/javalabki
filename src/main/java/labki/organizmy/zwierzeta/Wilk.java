@@ -19,13 +19,13 @@ public class Wilk extends Zwierze {
     @Override
     public void akcja() {
         this.idz();
-        world.dodajLogi("W ruch");
+        swiat.dodajLogi("W ruch");
     }
 
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Wilk(world, p));
+        swiat.dodajOrganizm(new Wilk(swiat, p));
     }
 
     @Override

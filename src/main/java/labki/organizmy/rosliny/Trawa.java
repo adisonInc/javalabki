@@ -16,7 +16,7 @@ public class Trawa extends Roslina {
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Trawa(world,p));
+        swiat.dodajOrganizm(new Trawa(swiat,p));
 
 
     }

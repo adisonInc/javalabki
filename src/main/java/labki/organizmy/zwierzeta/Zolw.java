@@ -21,13 +21,13 @@ public class Zolw extends Zwierze {
 
     @Override
     public void akcja(){
-        Random rand = world.getRandom();
+        Random rand = swiat.getRandom();
         int los = rand.nextInt(4);
         if(los==0){
             idz();
-            world.dodajLogi("Z ruch");
+            swiat.dodajLogi("Z ruch");
         } else {
-            world.dodajLogi("Z stoi");
+            swiat.dodajLogi("Z stoi");
         }
     }
     @Override
@@ -40,28 +40,28 @@ public class Zolw extends Zwierze {
             if (napastnik instanceof Zwierze) {
                 ((Zwierze) napastnik).wroc();
             }
-            world.dodajLogi("Z odbicie");
+            swiat.dodajLogi("Z odbicie");
         }
         else {
             if (napastnik.getSila() >= this.getSila()) {
-                world.dodajLogi("Z zjedzony");
+                swiat.dodajLogi("Z zjedzony");
                 this.setZyje(false);
 
                 Punkt staraPozNapastnika = napastnik.getPolozenie();
                 Punkt pozycjaZolwia = this.getPolozenie();
 
-                world.zmienPoz(staraPozNapastnika, pozycjaZolwia, napastnik);
+                swiat.zmienPoz(staraPozNapastnika, pozycjaZolwia, napastnik);
                 napastnik.setPolozenie(pozycjaZolwia);
             } else {
-                world.dodajLogi("Z wygral");
+                swiat.dodajLogi("Z wygral");
                 napastnik.setZyje(false);
-                world.zmienPoz(napastnik.getPolozenie(), napastnik.getPolozenie(), null);
+                swiat.zmienPoz(napastnik.getPolozenie(), napastnik.getPolozenie(), null);
             }
         }
     }
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Zolw(world, p));
+        swiat.dodajOrganizm(new Zolw(swiat, p));
     }
 
     @Override

@@ -26,12 +26,12 @@ public class Barszcz extends Roslina {
                 int nx = this.polozenie.x() + dx;
                 int ny = this.polozenie.y() + dy;
 
-                if (world.sprawdzCzyWGrid(nx, ny)) {
-                    Organizm ofiara = world.ktoTutaj(nx, ny);
+                if (swiat.sprawdzCzyWGrid(nx, ny)) {
+                    Organizm ofiara = swiat.ktoTutaj(nx, ny);
                     if (ofiara != null && ofiara instanceof Zwierze) {
                         if (!(ofiara instanceof Cyber)) {
                             ofiara.setZyje(false);
-                            world.dodajLogi("Barszcz zabija sąsiada: " + ofiara.getClass().getSimpleName());
+                            swiat.dodajLogi("Barszcz zabija sąsiada: " + ofiara.getClass().getSimpleName());
                         }
                     }
                 }
@@ -44,16 +44,16 @@ public class Barszcz extends Roslina {
     public void kolizja(Organizm inny) {
         if (inny.getClass() == this.getClass()){
             this.rozmnoz(this.polozenie);
-            world.dodajLogi("B rozmnazanie");
+            swiat.dodajLogi("B rozmnazanie");
         } else {
-            world.dodajLogi("B trucizna");
+            swiat.dodajLogi("B trucizna");
             super.kolizja(inny);
         }
     }
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Barszcz(world,p));
+        swiat.dodajOrganizm(new Barszcz(swiat,p));
     }
 
     @Override

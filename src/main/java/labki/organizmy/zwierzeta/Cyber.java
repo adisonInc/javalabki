@@ -26,7 +26,7 @@ public class Cyber extends Zwierze {
 
         if (celBarszcz == null) {
             super.idz();
-            world.dodajLogi("C Ruch");
+            swiat.dodajLogi("C Ruch");
             return;
         }
 
@@ -38,14 +38,14 @@ public class Cyber extends Zwierze {
 
         Punkt nastepnyKrok = new Punkt(pCyber.x() + dx, pCyber.y() + dy);
 
-        if (world.sprawdzCzyWGrid(nastepnyKrok)) {
+        if (swiat.sprawdzCzyWGrid(nastepnyKrok)) {
             this.idz(nastepnyKrok);
-            world.dodajLogi("C idzie do barszczu");
+            swiat.dodajLogi("C idzie do barszczu");
         }
     }
 
     private Organizm najblizszyBarszcz() {
-        int obecnaTura = world.getNumerTury();
+        int obecnaTura = swiat.getNumerTury();
 
         if (nrTuryCache != obecnaTura) {
             aktualizujCacheBarszczy();
@@ -74,7 +74,7 @@ public class Cyber extends Zwierze {
 
     private void aktualizujCacheBarszczy() {
         cacheBarszcze.clear();
-        List<Organizm> wszystkie = world.getOrganizmy();
+        List<Organizm> wszystkie = swiat.getOrganizmy();
 
         for (Organizm o : wszystkie) {
             if (o instanceof Barszcz && o.isZyje()) {
@@ -88,9 +88,9 @@ public class Cyber extends Zwierze {
         if (napastnik != null) {
             if (napastnik instanceof Cyber) {
                 this.rozmnoz(this.polozenie);
-                world.dodajLogi("C rozmnazanie");
+                swiat.dodajLogi("C rozmnazanie");
             } else {
-                world.dodajLogi("C walka");
+                swiat.dodajLogi("C walka");
                 super.kolizja(napastnik);
             }
         }
@@ -98,7 +98,7 @@ public class Cyber extends Zwierze {
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Cyber(world, p));
+        swiat.dodajOrganizm(new Cyber(swiat, p));
     }
 
     @Override

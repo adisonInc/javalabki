@@ -27,18 +27,18 @@ public abstract class Zwierze extends Organizm {
 
     public void walka(Organizm inny){
         if (inny.getSila() <= this.getSila()){
-            world.usunZGrid(inny);
+            swiat.usunZGrid(inny);
             inny.setZyje(false);
-            world.przesunOrganizm(this, inny.getPolozenie());
+            swiat.przesunOrganizm(this, inny.getPolozenie());
         }else {
             this.setZyje(false);
-            world.usunZGrid(this);
+            swiat.usunZGrid(this);
         }
     }
 
     void idz() {
         ostatniaPozycja = this.polozenie;
-        Random rand = world.getRandom();
+        Random rand = swiat.getRandom();
         boolean wykonanoRuch = false;
         int proby = 10;
         Punkt startPoz = this.polozenie;
@@ -54,11 +54,11 @@ public abstract class Zwierze extends Organizm {
             int rx = startPoz.x() + dx;
             int ry = startPoz.y() + dy;
 
-            if(world.sprawdzCzyWGrid(rx, ry)) {
-                Organizm zajety = world.ktoTutaj(rx, ry);
+            if(swiat.sprawdzCzyWGrid(rx, ry)) {
+                Organizm zajety = swiat.ktoTutaj(rx, ry);
                 if(zajety == null) {
                     Punkt cel = new Punkt(rx, ry);
-                    world.przesunOrganizm(this, cel);
+                    swiat.przesunOrganizm(this, cel);
                     wykonanoRuch = true;
                 } else {
                     zajety.kolizja(this);
@@ -76,11 +76,11 @@ public abstract class Zwierze extends Organizm {
         Punkt startPoz = this.polozenie;
             int rx = punkt.x();
             int ry = punkt.y();
-            if(world.sprawdzCzyWGrid(rx, ry)) {
-                Organizm zajety = world.ktoTutaj(rx, ry);
+            if(swiat.sprawdzCzyWGrid(rx, ry)) {
+                Organizm zajety = swiat.ktoTutaj(rx, ry);
                 if(zajety == null) {
                     Punkt cel = new Punkt(rx, ry);
-                    world.przesunOrganizm(this, cel);
+                    swiat.przesunOrganizm(this, cel);
                     wykonanoRuch = true;
                 } else {
                     zajety.kolizja(this);

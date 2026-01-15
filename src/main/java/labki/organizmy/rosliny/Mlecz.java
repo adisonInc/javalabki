@@ -22,7 +22,7 @@ public class Mlecz extends Roslina {
 
     @Override
     protected void urodzDziecko(Punkt p) {
-        world.dodajOrganizm(new Mlecz(world,p));
+        swiat.dodajOrganizm(new Mlecz(swiat,p));
 
 
     }

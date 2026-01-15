@@ -1,0 +1,1449 @@
+package labki;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
+import labki.organizmy.rosliny.*;
+import labki.organizmy.zwierzeta.Antylopa;
+import labki.organizmy.zwierzeta.Cyber;
+import labki.organizmy.zwierzeta.Czlowiek;
+import labki.organizmy.zwierzeta.Lis;
+import labki.organizmy.zwierzeta.Owca;
+import labki.organizmy.zwierzeta.Wilk;
+import labki.organizmy.zwierzeta.Zolw;
+import labki.ui.GamePanel;
+
+public class Main {
+    public static void main(String[] args) {
+
+        final int WIDTH = 30;
+        final int HEIGHT = 30;
+
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Świat - Symulator");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(WIDTH * 50 + 200, HEIGHT * 50 + 100);
+            frame.setLocationRelativeTo(null);
+            frame.setResizable(true);
+
+            Swiat swiat = Swiat.getSwiat();
+            swiat.setGrid(HEIGHT, WIDTH);
+            
+            for (int i = 0; i < 2; i++) {
+                swiat.dodajOrganizm(new Wilk(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Owca(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Zolw(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Antylopa(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Cyber(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Lis(swiat, swiat.losujPustyPunky()));
+
+
+            }
+            for (int i = 0; i <5 ; i++) {
+                swiat.dodajOrganizm(new Barszcz(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Guarana(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Jagoda(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Mlecz(swiat, swiat.losujPustyPunky()));
+                swiat.dodajOrganizm(new Trawa(swiat, swiat.losujPustyPunky()));
+            }
+
+
+            swiat.dodajOrganizm(new Czlowiek(swiat, swiat.losujPunkt()));
+
+            GamePanel gamePanel = new GamePanel(swiat);
+            frame.setContentPane(gamePanel);
+            frame.setVisible(true);
+        });
+    }
+}
+package labki.organizmy;
+
+import java.util.Random;
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+
+public abstract class Organizm {
+    protected Swiat swiat; // Zmiana nazwy pola
+    protected Punkt polozenie;
+    protected boolean zyje;
+    protected int wiek;
+    protected int sila;
+    protected int inicjatywa;
+
+    public Organizm(Swiat swiat, Punkt p) {
+        this.swiat = swiat;
+        this.polozenie = p;
+        this.zyje = true;
+        this.wiek = 0;
+    }
+
+    public abstract void akcja();
+    public abstract void kolizja(Organizm inny);
+    public abstract Rys rysowanie();
+    protected abstract void urodzDziecko(Punkt p);
+
+    public void rozmnoz(Punkt p) {
+        Random rand = swiat.getRandom();
+        // Szukamy wolnego pola obok
+        for (int i = 0; i < 10; i++) {
+            int dx = rand.nextInt(3) - 1;
+            int dy = rand.nextInt(3) - 1;
+            Punkt dzieckoPoz = new Punkt(p.x() + dx, p.y() + dy);
+
+            if (swiat.sprawdzCzyWGrid(dzieckoPoz) && swiat.ktoTutaj(dzieckoPoz) == null) {
+                urodzDziecko(dzieckoPoz);
+                swiat.dodajLogi("Nowy organizm: " + this.getClass().getSimpleName());
+                return;
+            }
+        }
+    }
+
+    // Gettery i Settery
+    public int getSila() { return sila; }
+    public void setSila(int s) { sila = s; }
+    public int getInicjatywa() { return inicjatywa; }
+    public Punkt getPolozenie() { return polozenie; }
+    public void setPolozenie(Punkt p) { this.polozenie = p; }
+    public boolean isZyje() { return zyje; }
+    public void setZyje(boolean z) { zyje = z; }
+    public int getWiek() { return wiek; }
+    public void incWiek() { wiek++; }
+}package labki.organizmy.rosliny;
+
+import java.awt.Color;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+import labki.organizmy.zwierzeta.Cyber;
+import labki.organizmy.zwierzeta.Zwierze;
+
+public class Barszcz extends Roslina {
+    public Barszcz(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.inicjatywa=0;
+        this.sila=10;
+
+    }
+
+    @Override
+    public void akcja() {
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dy == 0) continue;
+
+                int nx = this.polozenie.x() + dx;
+                int ny = this.polozenie.y() + dy;
+
+                if (swiat.sprawdzCzyWGrid(nx, ny)) {
+                    Organizm ofiara = swiat.ktoTutaj(nx, ny);
+                    if (ofiara != null && ofiara instanceof Zwierze) {
+                        if (!(ofiara instanceof Cyber)) {
+                            ofiara.setZyje(false);
+                            swiat.dodajLogi("Barszcz zabija sąsiada: " + ofiara.getClass().getSimpleName());
+                        }
+                    }
+                }
+            }
+        }
+
+        super.akcja();
+    }
+    @Override
+    public void kolizja(Organizm inny) {
+        if (inny.getClass() == this.getClass()){
+            this.rozmnoz(this.polozenie);
+            swiat.dodajLogi("B rozmnazanie");
+        } else {
+            swiat.dodajLogi("B trucizna");
+            super.kolizja(inny);
+        }
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Barszcz(swiat,p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('B',  new Color(104, 141, 104));
+    }
+}
+package labki.organizmy.rosliny;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+import java.awt.*;
+
+public class Guarana extends Roslina {
+    public Guarana(Swiat swiat, Punkt p) {
+        super(swiat, p);
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Guarana(swiat,p));
+    }
+
+    @Override
+    public void kolizja(Organizm inny){
+        inny.setSila(inny.getSila()+3);
+        this.setZyje(false);
+        swiat.usunZGrid(this);
+        swiat.przesunOrganizm(inny, this.getPolozenie());
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('G', new Color(54, 36, 103));
+    }
+}
+package labki.organizmy.rosliny;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+import java.awt.*;
+
+public class Jagoda extends Roslina {
+    public Jagoda(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 99;
+    }
+
+    @Override
+    public void kolizja(Organizm inny){
+        inny.setZyje(false);
+        swiat.zmienPoz(inny.getPolozenie(),inny.getPolozenie(),null);
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Jagoda(swiat,p));
+
+
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('J',  new Color(103, 37, 47));
+    }
+}
+package labki.organizmy.rosliny;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+import java.awt.*;
+
+public class Mlecz extends Roslina {
+    public Mlecz(Swiat swiat, Punkt p) {
+        super(swiat, p);
+
+    }
+
+    @Override
+    public void akcja() {
+        super.akcja();
+        super.akcja();
+        super.akcja();
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Mlecz(swiat,p));
+
+
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('M', new Color(9, 68, 0));
+    }
+}
+package labki.organizmy.rosliny;
+
+import labki.Punkt;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+public abstract class Roslina extends Organizm {
+    public Roslina(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.inicjatywa=0;
+
+    }
+
+
+
+    @Override
+    public void akcja() {
+       int los = swiat.getRandom().nextInt(20);
+       if(los==0){
+           rozmnoz(this.polozenie);
+       }
+    }
+    @Override
+    public void kolizja(Organizm inny){
+        if (inny.getClass() == this.getClass()){
+            this.rozmnoz(this.polozenie);
+        }else{
+            walka(inny);
+        }
+    }
+
+    public void walka(Organizm inny) {
+        if (inny.getSila() <= this.getSila()) {
+            inny.setZyje(false);
+            swiat.usunZGrid(inny);
+        } else {
+            this.setZyje(false);
+            swiat.przesunOrganizm(inny, this.getPolozenie());
+        }
+    }
+
+
+}
+
+
+package labki.organizmy.rosliny;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+
+import java.awt.*;
+
+public class Trawa extends Roslina {
+    public Trawa(Swiat swiat, Punkt p) {
+        super(swiat, p);
+
+    }
+
+
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Trawa(swiat,p));
+
+
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('T', new Color(45, 82, 22));
+    }
+}
+package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+public class Antylopa extends Zwierze {
+
+
+    public Antylopa(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 4;
+        this.inicjatywa = 4;
+        this.wiek = 0;
+    }
+
+
+
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Antylopa(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('A', Color.CYAN);
+    }
+
+    @Override
+    public void akcja(){
+        this.idz();
+        swiat.dodajLogi("A ruch1");
+        if(this.isZyje()){
+            this.idz();
+            swiat.dodajLogi("A ruch2");
+        }
+    }
+
+    @Override
+    public void kolizja(Organizm inny){
+      if(inny instanceof  Antylopa){
+            this.rozmnoz(this.getPolozenie());
+            swiat.dodajLogi("A rozmnazanie");
+            return;
+        }
+      if (inny != null) {
+        int los= swiat.getRandom().nextInt(10);
+          if (los>5){
+              swiat.dodajLogi("A ucieczka");
+              idz(swiat.pustySasiad(this.getPolozenie()));
+          }else {
+              swiat.dodajLogi("A walka");
+              walka(inny);
+          }
+      }
+    }
+
+
+}
+package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+import labki.organizmy.rosliny.Barszcz;
+
+public class Cyber extends Zwierze {
+    private static final List<Organizm> cacheBarszcze = new ArrayList<>();
+    private static int nrTuryCache = -1;
+
+    public Cyber(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 11;
+        this.inicjatywa = 4;
+    }
+
+    @Override
+    public void akcja() {
+        Organizm celBarszcz = najblizszyBarszcz();
+
+        if (celBarszcz == null) {
+            super.idz();
+            swiat.dodajLogi("C Ruch");
+            return;
+        }
+
+        Punkt pCyber = this.polozenie;
+        Punkt pBarszcz = celBarszcz.getPolozenie();
+
+        int dx = Integer.compare(pBarszcz.x(), pCyber.x());
+        int dy = Integer.compare(pBarszcz.y(), pCyber.y());
+
+        Punkt nastepnyKrok = new Punkt(pCyber.x() + dx, pCyber.y() + dy);
+
+        if (swiat.sprawdzCzyWGrid(nastepnyKrok)) {
+            this.idz(nastepnyKrok);
+            swiat.dodajLogi("C idzie do barszczu");
+        }
+    }
+
+    private Organizm najblizszyBarszcz() {
+        int obecnaTura = swiat.getNumerTury();
+
+        if (nrTuryCache != obecnaTura) {
+            aktualizujCacheBarszczy();
+            nrTuryCache = obecnaTura;
+        }
+
+        if (cacheBarszcze.isEmpty()) return null;
+
+        Organizm najblizszy = null;
+        int minDystans = Integer.MAX_VALUE;
+
+        for (Organizm b : cacheBarszcze) {
+            if (!b.isZyje()) continue;
+
+            int d = Math.max(Math.abs(this.polozenie.x() - b.getPolozenie().x()),
+                    Math.abs(this.polozenie.y() - b.getPolozenie().y()));
+
+            if (d < minDystans) {
+                minDystans = d;
+                najblizszy = b;
+                if (minDystans <= 1) break;
+            }
+        }
+        return najblizszy;
+    }
+
+    private void aktualizujCacheBarszczy() {
+        cacheBarszcze.clear();
+        List<Organizm> wszystkie = swiat.getOrganizmy();
+
+        for (Organizm o : wszystkie) {
+            if (o instanceof Barszcz && o.isZyje()) {
+                cacheBarszcze.add(o);
+            }
+        }
+    }
+
+    @Override
+    public void kolizja(Organizm napastnik) {
+        if (napastnik != null) {
+            if (napastnik instanceof Cyber) {
+                this.rozmnoz(this.polozenie);
+                swiat.dodajLogi("C rozmnazanie");
+            } else {
+                swiat.dodajLogi("C walka");
+                super.kolizja(napastnik);
+            }
+        }
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Cyber(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('C', new Color(200, 0, 218));
+    }
+}package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.util.Set;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+public class Czlowiek extends Zwierze {
+    private int cd = 0;
+    private boolean umiejetnoscAktywna = false;
+    private int pozostaloRuchow = 0;
+    private int turUmiejetnosci = 0;
+
+    public Czlowiek(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 5;
+        this.inicjatywa = 4;
+        this.wiek = 0;
+    }
+
+    @Override
+    public void akcja() {
+        if (cd > 0) cd--;
+
+        Set<Integer> keys = swiat.getPressedKeys();
+
+        if (keys.contains(KeyEvent.VK_U) && cd == 0 && !umiejetnoscAktywna) {
+            aktywujUmiejetnosc();
+        }
+
+        if (!czyWcisnietoStrzalke(keys)) {
+            return;
+        }
+
+        int dystans = 1;
+        boolean ruchZablokowany = false;
+
+        if (umiejetnoscAktywna) {
+            if (turUmiejetnosci < 3) {
+                dystans = 2;
+            } else {
+
+                if (swiat.getRandom().nextDouble() < 0.5) {
+                    dystans = 0;
+                    ruchZablokowany = true;
+                }
+            }
+        }
+
+
+        if (ruchZablokowany) {
+
+            swiat.dodajLogi("Szybkosc Antylopy: pech! Czlowiek stoi w miejscu.");
+        } else {
+            Punkt cel = pobierzCelZKeys(dystans);
+
+            if (cel != null && !cel.equals(this.polozenie)) { // Dodatkowe zabezpieczenie
+                if (swiat.sprawdzCzyWGrid(cel)) {
+                    this.idz(cel);
+                }
+            }
+        }
+
+        if (umiejetnoscAktywna) {
+            turUmiejetnosci++;
+            pozostaloRuchow--;
+            if (pozostaloRuchow <= 0) {
+                umiejetnoscAktywna = false;
+                turUmiejetnosci = 0;
+                swiat.dodajLogi("Szybkosc Antylopy wygasla.");
+            }
+        }
+    }
+
+    private boolean czyWcisnietoStrzalke(Set<Integer> keys) {
+        return keys.contains(KeyEvent.VK_UP) ||
+                keys.contains(KeyEvent.VK_DOWN) ||
+                keys.contains(KeyEvent.VK_LEFT) ||
+                keys.contains(KeyEvent.VK_RIGHT);
+    }
+
+    private Punkt pobierzCelZKeys(int dystans) {
+        Set<Integer> keys = swiat.getPressedKeys();
+        int dx = 0, dy = 0;
+
+        if (keys.contains(KeyEvent.VK_UP)) dy = -dystans;
+        else if (keys.contains(KeyEvent.VK_DOWN)) dy = dystans;
+        else if (keys.contains(KeyEvent.VK_LEFT)) dx = -dystans;
+        else if (keys.contains(KeyEvent.VK_RIGHT)) dx = dystans;
+        else return null;
+
+        return new Punkt(this.polozenie.x() + dx, this.polozenie.y() + dy);
+    }
+
+    public void aktywujUmiejetnosc() {
+        swiat.dodajLogi("Czlowiek aktywuje Szybkosc Antylopy!");
+        this.cd = 10;
+        this.umiejetnoscAktywna = true;
+        this.pozostaloRuchow = 5;
+        this.turUmiejetnosci = 0;
+    }
+
+    @Override
+    public void kolizja(Organizm napastnik) {
+        super.kolizja(napastnik);
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Czlowiek(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('K', new Color(255, 106, 106));
+    }
+}package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+public class Lis extends Zwierze {
+
+
+    public Lis(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 3;
+        this.inicjatywa = 7;
+        this.wiek = 0;
+    }
+
+    @Override
+    public void akcja() {
+        for (int i = 0; i < 10; i++) {
+            int vx = swiat.losujPrzesuniecie();
+            int vy = swiat.losujPrzesuniecie();
+
+            if (vx == 0 && vy == 0) {
+                continue;
+            }
+
+            Punkt cel = new Punkt(this.polozenie.x() + vx, this.polozenie.y() + vy);
+
+            if (swiat.sprawdzCzyWGrid(cel)) {
+                Organizm ofiara = swiat.ktoTutaj(cel);
+
+                if (ofiara == null || ofiara.getSila() <= this.getSila()) {
+                    this.idz(cel);
+                    swiat.dodajLogi("L ruch ");
+                    return;
+                }
+            }
+        }
+
+    }
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Lis(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('L', Color.ORANGE);
+    }
+
+
+}
+package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+
+public class Owca extends Zwierze {
+
+
+    public Owca(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 4;
+        this.inicjatywa = 4;
+        this.wiek = 0;
+    }
+
+    @Override
+    public void akcja() {
+        super.akcja();
+        swiat.dodajLogi("O ruch");
+    }
+
+
+
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Owca(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('O', Color.WHITE);
+    }
+
+
+}
+package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+
+public class Wilk extends Zwierze {
+
+
+    public Wilk(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 9;
+        this.inicjatywa = 5;
+        this.wiek = 0;
+    }
+
+    @Override
+    public void akcja() {
+        this.idz();
+        swiat.dodajLogi("W ruch");
+    }
+
+
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Wilk(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('W', Color.RED);
+    }
+
+
+}
+package labki.organizmy.zwierzeta;
+
+import java.awt.Color;
+import java.util.Random;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+public class Zolw extends Zwierze {
+
+
+    public Zolw(Swiat swiat, Punkt p) {
+        super(swiat, p);
+        this.sila = 2;
+        this.inicjatywa = 1;
+        this.wiek = 0;
+    }
+
+
+    @Override
+    public void akcja(){
+        Random rand = swiat.getRandom();
+        int los = rand.nextInt(4);
+        if(los==0){
+            idz();
+            swiat.dodajLogi("Z ruch");
+        } else {
+            swiat.dodajLogi("Z stoi");
+        }
+    }
+    @Override
+    public void kolizja(Organizm napastnik){
+        if (napastnik == null) return;
+        if (napastnik instanceof Zolw) {
+            this.rozmnoz(this.polozenie);
+        }
+        else if (napastnik.getSila() < 5) {
+            if (napastnik instanceof Zwierze) {
+                ((Zwierze) napastnik).wroc();
+            }
+            swiat.dodajLogi("Z odbicie");
+        }
+        else {
+            if (napastnik.getSila() >= this.getSila()) {
+                swiat.dodajLogi("Z zjedzony");
+                this.setZyje(false);
+
+                Punkt staraPozNapastnika = napastnik.getPolozenie();
+                Punkt pozycjaZolwia = this.getPolozenie();
+
+                swiat.zmienPoz(staraPozNapastnika, pozycjaZolwia, napastnik);
+                napastnik.setPolozenie(pozycjaZolwia);
+            } else {
+                swiat.dodajLogi("Z wygral");
+                napastnik.setZyje(false);
+                swiat.zmienPoz(napastnik.getPolozenie(), napastnik.getPolozenie(), null);
+            }
+        }
+    }
+    @Override
+    protected void urodzDziecko(Punkt p) {
+        swiat.dodajOrganizm(new Zolw(swiat, p));
+    }
+
+    @Override
+    public Rys rysowanie() {
+        return new Rys('Z', Color.GREEN);
+    }
+
+
+}
+package labki.organizmy.zwierzeta;
+
+import java.util.Random;
+
+import labki.Punkt;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+
+public abstract class Zwierze extends Organizm {
+    protected Punkt ostatniaPozycja;
+    public Zwierze(Swiat swiat, Punkt p) {
+        super(swiat, p);
+    }
+
+    @Override
+    public void akcja() {
+        idz();
+    }
+    @Override
+    public void kolizja(Organizm inny){
+        if (inny.getClass() == this.getClass()){
+            this.rozmnoz(this.polozenie);
+        }else{
+            walka(inny);
+        }
+    }
+
+    public void walka(Organizm inny){
+        if (inny.getSila() <= this.getSila()){
+            swiat.usunZGrid(inny);
+            inny.setZyje(false);
+            swiat.przesunOrganizm(this, inny.getPolozenie());
+        }else {
+            this.setZyje(false);
+            swiat.usunZGrid(this);
+        }
+    }
+
+    void idz() {
+        ostatniaPozycja = this.polozenie;
+        Random rand = swiat.getRandom();
+        boolean wykonanoRuch = false;
+        int proby = 10;
+        Punkt startPoz = this.polozenie;
+
+        while(proby > 0 && !wykonanoRuch) {
+            int dx = rand.nextInt(3) - 1; // -1,0,1
+            int dy = rand.nextInt(3) - 1; // -1,0,1
+            if(dx == 0 && dy == 0) {
+                proby--;
+                continue;
+            }
+
+            int rx = startPoz.x() + dx;
+            int ry = startPoz.y() + dy;
+
+            if(swiat.sprawdzCzyWGrid(rx, ry)) {
+                Organizm zajety = swiat.ktoTutaj(rx, ry);
+                if(zajety == null) {
+                    Punkt cel = new Punkt(rx, ry);
+                    swiat.przesunOrganizm(this, cel);
+                    wykonanoRuch = true;
+                } else {
+                    zajety.kolizja(this);
+                    wykonanoRuch = true;
+                }
+            }
+
+            proby--;
+        }
+    }
+    void idz(Punkt punkt) {
+        ostatniaPozycja = this.polozenie;
+        boolean wykonanoRuch = false;
+        int proby = 10;
+        Punkt startPoz = this.polozenie;
+            int rx = punkt.x();
+            int ry = punkt.y();
+            if(swiat.sprawdzCzyWGrid(rx, ry)) {
+                Organizm zajety = swiat.ktoTutaj(rx, ry);
+                if(zajety == null) {
+                    Punkt cel = new Punkt(rx, ry);
+                    swiat.przesunOrganizm(this, cel);
+                    wykonanoRuch = true;
+                } else {
+                    zajety.kolizja(this);
+                    wykonanoRuch = true;
+                }
+            }
+
+            proby--;
+        }
+
+    protected void wroc() {
+        idz(ostatniaPozycja);
+    }
+}
+
+
+package labki;
+
+public record Punkt(int x, int y) {
+}
+package labki;
+
+import java.awt.Color;
+
+public class Rys {
+    public char symbol;
+    public Color color;
+
+    public Rys(char symbol, Color color) {
+        this.symbol = symbol;
+        this.color = color;
+    }
+}
+package labki;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import labki.organizmy.Organizm;
+
+public class Swiat {
+    private static Swiat instance = null;
+
+    private int N, M; // Wysokość, Szerokość
+    private Organizm[][] grid;
+    private final List<Organizm> inicjatywy = new ArrayList<>();
+    private final List<String> logi = new ArrayList<>();
+    private int numerTury = 0;
+    private final Random rand = new Random();
+
+    private Swiat() {}
+
+    public static Swiat getSwiat() {
+        if (instance == null) {
+            instance = new Swiat();
+        }
+        return instance;
+    }
+
+    public void setGrid(int n, int m) {
+        this.N = n;
+        this.M = m;
+        grid = new Organizm[N][M];
+    }
+
+    public void wykonajTure() {
+        numerTury++;
+        logi.clear();
+
+        // Sortowanie po inicjatywie
+        inicjatywy.sort((a, b) -> {
+            if (a.getInicjatywa() != b.getInicjatywa())
+                return b.getInicjatywa() - a.getInicjatywa();
+            return b.getWiek() - a.getWiek();
+        });
+
+        // Kopia listy, aby uniknąć błędów modyfikacji w pętli
+        List<Organizm> kopia = new ArrayList<>(inicjatywy);
+        for (Organizm o : kopia) {
+            if (o.isZyje()) {
+                o.akcja();
+                o.incWiek();
+            }
+        }
+
+        czysczenie();
+    }
+
+    private void czysczenie() {
+        inicjatywy.removeIf(o -> !o.isZyje());
+
+        for (int y = 0; y < N; y++) {
+            for (int x = 0; x < M; x++) {
+                if (grid[y][x] != null && !grid[y][x].isZyje()) {
+                    grid[y][x] = null;
+                }
+            }
+        }
+    }
+
+    public boolean sprawdzCzyWGrid(Punkt p) {
+        return p.x() >= 0 && p.x() < M && p.y() >= 0 && p.y() < N;
+    }
+
+    public boolean sprawdzCzyWGrid(int x, int y) {
+        return x >= 0 && x < M && y >= 0 && y < N;
+    }
+
+    public int getGridM() { return M; }
+    public int getGridN() { return N; }
+
+    public Organizm ktoTutaj(Punkt p) {
+        if (!sprawdzCzyWGrid(p)) return null;
+        return grid[p.y()][p.x()];
+    }
+
+
+    public Punkt pustySasiad(Punkt start) {
+        for (int i = 0; i < 30; i++) {
+            int rx = rand.nextInt(3) - 1 + start.x();
+            int ry = rand.nextInt(3) - 1 + start.y();
+
+            // Pomiń, jeśli wylosowało to samo pole, na którym stoimy
+            if (rx == start.x() && ry == start.y()) continue;
+
+            Punkt p = new Punkt(rx, ry);
+            if (sprawdzCzyWGrid(p) && ktoTutaj(p) == null) {
+                return p;
+            }
+        }
+        // Jeśli nie znajdzie pustego sąsiada po 30 próbach, zwraca punkt startowy
+        return start;
+    }
+    public Organizm ktoTutaj(int x, int y) {
+        if (!sprawdzCzyWGrid(x, y)) return null;
+        return grid[y][x];
+    }
+
+    public void przesunOrganizm(Organizm org, Punkt nowy) {
+        if (org == null || !sprawdzCzyWGrid(nowy)) return;
+
+        // Czyścimy stare miejsce
+        Punkt stary = org.getPolozenie();
+        if (stary != null && grid[stary.y()][stary.x()] == org) {
+            grid[stary.y()][stary.x()] = null;
+        }
+
+        // Ustawiamy nowe
+        grid[nowy.y()][nowy.x()] = org;
+        org.setPolozenie(nowy);
+    }
+
+    // Metoda pomocnicza do walki (np. przesuwanie wygranego na miejsce przegranego)
+    public void zmienPoz(Punkt stary, Punkt nowy, Organizm org) {
+        if(stary != null && sprawdzCzyWGrid(stary)) grid[stary.y()][stary.x()] = null;
+        if(nowy != null && sprawdzCzyWGrid(nowy)) grid[nowy.y()][nowy.x()] = org;
+        if(org != null) org.setPolozenie(nowy);
+    }
+
+    public void dodajOrganizm(Organizm o) {
+        Punkt p = o.getPolozenie();
+        if (sprawdzCzyWGrid(p) && grid[p.y()][p.x()] == null) {
+            inicjatywy.add(o);
+            grid[p.y()][p.x()] = o;
+        }
+    }
+
+    public void usunZGrid(Organizm org) {
+        org.setZyje(false);
+        Punkt p = org.getPolozenie();
+        if (p != null && sprawdzCzyWGrid(p) && grid[p.y()][p.x()] == org) {
+            grid[p.y()][p.x()] = null;
+        }
+    }
+    public int losujPrzesuniecie() {
+        // Zwraca -1, 0 lub 1
+        return rand.nextInt(3) - 1;
+    }
+    public Punkt losujPustyPunky() { // Zostawiam Twoją nazwę metody :)
+        for (int i = 0; i < 50; i++) {
+            int x = rand.nextInt(M);
+            int y = rand.nextInt(N);
+            if (grid[y][x] == null) return new Punkt(x, y);
+        }
+        return null;
+    }
+
+    public Punkt losujPunkt() {
+        return new Punkt(rand.nextInt(M), rand.nextInt(N));
+    }
+
+    public void dodajLogi(String s) { logi.add(s); }
+    public List<String> getLogi() { return logi; }
+    public List<Organizm> getOrganizmy() { return inicjatywy; }
+    public Random getRandom() { return rand; }
+    public int getNumerTury() { return numerTury; }
+
+    // Dla kompatybilności z Twoim kodem klawiszy
+    private labki.ui.GameCanvas gameCanvas;
+    public void setGameCanvas(labki.ui.GameCanvas gc) { this.gameCanvas = gc; }
+    public java.util.Set<Integer> getPressedKeys() {
+        return gameCanvas != null ? gameCanvas.getPressedKeys() : new java.util.HashSet<>();
+    }
+}package labki.ui;
+
+import java.awt.Color;
+import java.awt.FlowLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import labki.Swiat;
+
+public class ControlPanel extends JPanel {
+    private final Swiat world;
+    private final GameCanvas gameCanvas;
+    private final JLabel infoLabel;
+
+    public ControlPanel(Swiat world, GameCanvas gameCanvas) {
+        this.world = world;
+        this.gameCanvas = gameCanvas;
+
+        setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        setBackground(new Color(40, 40, 40));
+        setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.DARK_GRAY));
+
+        JButton nextTurnButton = new JButton("Następna Tura (SPACJA)");
+        nextTurnButton.addActionListener(e -> executeNextTurn());
+        add(nextTurnButton);
+
+        infoLabel = new JLabel("Tura: 0 | Organizmów: 0");
+        infoLabel.setForeground(Color.WHITE);
+        add(infoLabel);
+
+        Timer updateTimer = new Timer(100, e -> updateInfo());
+        updateTimer.start();
+    }
+
+    private void executeNextTurn() {
+        world.wykonajTure();
+        gameCanvas.repaint();
+    }
+
+    private void updateInfo() {
+        infoLabel.setText("Tura: " + world.getNumerTury() + " | Organizmów: " + world.getOrganizmy().size());
+    }
+}
+package labki.ui;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import labki.Punkt;
+import labki.Rys;
+import labki.Swiat;
+import labki.organizmy.Organizm;
+import labki.organizmy.rosliny.*;
+import labki.organizmy.zwierzeta.*;
+
+public class GameCanvas extends JPanel implements KeyListener, MouseListener {
+    private final Swiat swiat;
+    private final int rozmiarPola = 35; // Wielkość kratki w pikselach
+    private final Set<Integer> wcisnieteKlawisze = new HashSet<>();
+
+    public GameCanvas(Swiat swiat) {
+        this.swiat = swiat;
+        setBackground(Color.BLACK);
+        setFocusable(true);
+
+        // Dodajemy listenery, żeby gra reagowała na klawiaturę i myszkę
+        SwingUtilities.invokeLater(() -> {
+            addKeyListener(this);
+            addMouseListener(this);
+        });
+    }
+
+    public Set<Integer> getPressedKeys() {
+        return wcisnieteKlawisze;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        rysujSiatke(g2d);
+        rysujOrganizmy(g2d);
+        rysujInfo(g2d);
+    }
+
+    private void rysujSiatke(Graphics2D g) {
+        int szerokosc = swiat.getGridM() * rozmiarPola;
+        int wysokosc = swiat.getGridN() * rozmiarPola;
+
+        g.setColor(Color.DARK_GRAY);
+        g.setStroke(new BasicStroke(1));
+
+        // Rysowanie linii pionowych
+        for (int i = 0; i <= swiat.getGridM(); i++) {
+            g.drawLine(i * rozmiarPola, 0, i * rozmiarPola, wysokosc);
+        }
+        // Rysowanie linii poziomych
+        for (int i = 0; i <= swiat.getGridN(); i++) {
+            g.drawLine(0, i * rozmiarPola, szerokosc, i * rozmiarPola);
+        }
+
+        // Tło planszy (lekko szare pola)
+        g.setColor(new Color(20, 20, 20));
+        for (int y = 0; y < swiat.getGridN(); y++) {
+            for (int x = 0; x < swiat.getGridM(); x++) {
+                g.fillRect(x * rozmiarPola, y * rozmiarPola, rozmiarPola, rozmiarPola);
+            }
+        }
+    }
+
+    private void rysujOrganizmy(Graphics2D g) {
+        // Przechodzimy po każdym polu planszy
+        for (int y = 0; y < swiat.getGridN(); y++) {
+            for (int x = 0; x < swiat.getGridM(); x++) {
+
+                Organizm org = swiat.ktoTutaj(x, y);
+
+                if (org != null && org.isZyje()) {
+                    Rys rys = org.rysowanie();
+
+                    int px = x * rozmiarPola;
+                    int py = y * rozmiarPola;
+
+                    // Rysuj kwadrat (ciało organizmu)
+                    g.setColor(rys.color != null ? rys.color : Color.PINK);
+                    g.fillRect(px + 2, py + 2, rozmiarPola - 4, rozmiarPola - 4);
+
+                    // Rysuj literkę
+                    g.setColor(Color.BLACK);
+                    g.setFont(new Font("Arial", Font.BOLD, 20));
+
+                    String symbol = String.valueOf(rys.symbol);
+                    FontMetrics fm = g.getFontMetrics();
+                    int textX = px + (rozmiarPola - fm.stringWidth(symbol)) / 2;
+                    int textY = py + ((rozmiarPola - fm.getHeight()) / 2) + fm.getAscent();
+
+                    g.drawString(symbol, textX, textY);
+
+                    // Rysuj wiek (mała czcionka na dole)
+                    g.setFont(new Font("Arial", Font.PLAIN, 10));
+                    g.drawString("" + org.getWiek(), px + 2, py + rozmiarPola - 2);
+                }
+            }
+        }
+    }
+
+    private void rysujInfo(Graphics2D g) {
+        int infoY = swiat.getGridN() * rozmiarPola + 20;
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+        g.drawString("Strzałki: Ruch Człowieka | 'U': Super Umiejętność | Spacja: Nowa Tura", 20, infoY);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int szerokoscPlanszy = swiat.getGridM() * rozmiarPola;
+        int wysokoscPlanszy = swiat.getGridN() * rozmiarPola;
+
+        if (e.getX() < szerokoscPlanszy && e.getY() < wysokoscPlanszy) {
+            int x = e.getX() / rozmiarPola;
+            int y = e.getY() / rozmiarPola;
+
+            Punkt p = new Punkt(x, y);
+
+            if (swiat.ktoTutaj(p) == null) {
+                pokazMenuDodawania(p);
+            }
+        }
+    }
+
+    private void pokazMenuDodawania(Punkt punkt) {
+        String[] opcje = {
+                "Wilk", "Lis", "Owca", "Zolw", "Antylopa",
+                "Cyber", "Czlowiek", "Barszcz",
+                "Guarana", "Mlecz", "Trawa", "Jagoda"
+        };
+
+        String wybrany = (String) JOptionPane.showInputDialog(
+                this,
+                "Wybierz co dodać:",
+                "Dodaj Organizm",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                opcje,
+                opcje[0]
+        );
+
+        if (wybrany != null) {
+            Organizm nowy = null;
+
+            switch (wybrany) {
+                case "Wilk": nowy = new Wilk(swiat, punkt); break;
+                case "Lis": nowy = new Lis(swiat, punkt); break;
+                case "Owca": nowy = new Owca(swiat, punkt); break;
+                case "Zolw": nowy = new Zolw(swiat, punkt); break;
+                case "Antylopa": nowy = new Antylopa(swiat, punkt); break;
+                case "Cyber": nowy = new Cyber(swiat, punkt); break;
+                case "Czlowiek": nowy = new Czlowiek(swiat, punkt); break;
+                case "Barszcz": nowy = new Barszcz(swiat, punkt); break;
+                case "Guarana": nowy = new Guarana(swiat, punkt); break;
+                case "Mlecz": nowy = new Mlecz(swiat, punkt); break;
+                case "Trawa": nowy = new Trawa(swiat, punkt); break;
+                case "Jagoda": nowy = new Jagoda(swiat, punkt); break;
+            }
+
+            if (nowy != null) {
+                swiat.dodajOrganizm(nowy);
+                repaint();
+            }
+        }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        wcisnieteKlawisze.add(e.getKeyCode());
+
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            swiat.wykonajTure();
+            repaint();
+        } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            System.exit(0);
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        wcisnieteKlawisze.remove(e.getKeyCode());
+    }
+
+    // Nieużywane metody interfejsów (muszą być puste)
+    @Override public void keyTyped(KeyEvent e) {}
+    @Override public void mousePressed(MouseEvent e) {}
+    @Override public void mouseReleased(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
+}package labki.ui;
+
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
+import labki.Swiat;
+
+public class GamePanel extends JPanel {
+
+    public GamePanel(Swiat swiat) {
+        setLayout(new BorderLayout());
+
+        GameCanvas planszaUI = new GameCanvas(swiat);
+
+        swiat.setGameCanvas(planszaUI);
+
+        add(planszaUI, BorderLayout.CENTER);
+
+        LogsPanel panelLogow = new LogsPanel(swiat);
+        add(panelLogow, BorderLayout.EAST);
+    }
+}package labki.ui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.util.List;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.Timer;
+import labki.Swiat;
+
+public class LogsPanel extends JPanel {
+    private final Swiat swiat;
+    private final JTextArea obszarTekstu;
+
+    public LogsPanel(Swiat swiat) {
+        this.swiat = swiat;
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(250, 0));
+
+        obszarTekstu = new JTextArea();
+        obszarTekstu.setEditable(false);
+        obszarTekstu.setBackground(new Color(50, 50, 50));
+        obszarTekstu.setForeground(Color.WHITE);
+        obszarTekstu.setLineWrap(true);
+        obszarTekstu.setWrapStyleWord(true);
+
+        add(new JScrollPane(obszarTekstu), BorderLayout.CENTER);
+
+        // Odświeżanie logów co 200ms
+        new Timer(200, e -> odswiezLogi()).start();
+    }
+
+    private void odswiezLogi() {
+        List<String> logi = swiat.getLogi();
+        StringBuilder sb = new StringBuilder();
+
+        // Pokaż tylko ostatnie komunikaty, żeby nie zapchać pamięci
+        int start = Math.max(0, logi.size() - 30);
+        for (int i = start; i < logi.size(); i++) {
+            sb.append(logi.get(i)).append("\n");
+        }
+        obszarTekstu.setText(sb.toString());
+    }
+}

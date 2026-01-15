@@ -3,37 +3,25 @@ package labki;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-
 import labki.organizmy.Organizm;
-import labki.ui.GameCanvas;
 
 public class Swiat {
     private static Swiat instance = null;
 
-    private int N, M;
+    private int N, M; // Wysokość, Szerokość
     private Organizm[][] grid;
     private final List<Organizm> inicjatywy = new ArrayList<>();
     private final List<String> logi = new ArrayList<>();
     private int numerTury = 0;
     private final Random rand = new Random();
-    private GameCanvas gameCanvas;
 
-    private Swiat() {
-        this.N = 0;
-        this.M = 0;
-    }
+    private Swiat() {}
 
     public static Swiat getSwiat() {
         if (instance == null) {
             instance = new Swiat();
-            return instance;
         }
         return instance;
-    }
-
-    public static void resetInstance() {
-        instance = null;
     }
 
     public void setGrid(int n, int m) {
@@ -42,23 +30,40 @@ public class Swiat {
         grid = new Organizm[N][M];
     }
 
-    public void setGameCanvas(GameCanvas canvas) {
-        this.gameCanvas = canvas;
-    }
+    public void wykonajTure() {
+        numerTury++;
+        logi.clear();
 
-    public GameCanvas getGameCanvas() {
-        return this.gameCanvas;
-    }
+        // Sortowanie po inicjatywie
+        inicjatywy.sort((a, b) -> {
+            if (a.getInicjatywa() != b.getInicjatywa())
+                return b.getInicjatywa() - a.getInicjatywa();
+            return b.getWiek() - a.getWiek();
+        });
 
-    public Set<Integer> getPressedKeys() {
-        if (gameCanvas != null) {
-            return gameCanvas.getPressedKeys();
+        // Kopia listy, aby uniknąć błędów modyfikacji w pętli
+        List<Organizm> kopia = new ArrayList<>(inicjatywy);
+        for (Organizm o : kopia) {
+            if (o.isZyje()) {
+                o.akcja();
+                o.incWiek();
+            }
         }
-        return Set.of();
+
+        czysczenie();
     }
 
-    public int getGridN() { return N; }
-    public int getGridM() { return M; }
+    private void czysczenie() {
+        inicjatywy.removeIf(o -> !o.isZyje());
+
+        for (int y = 0; y < N; y++) {
+            for (int x = 0; x < M; x++) {
+                if (grid[y][x] != null && !grid[y][x].isZyje()) {
+                    grid[y][x] = null;
+                }
+            }
+        }
+    }
 
     public boolean sprawdzCzyWGrid(Punkt p) {
         return p.x() >= 0 && p.x() < M && p.y() >= 0 && p.y() < N;
@@ -68,179 +73,99 @@ public class Swiat {
         return x >= 0 && x < M && y >= 0 && y < N;
     }
 
-    public boolean sprawdzPole(Punkt p) {
-        return grid[p.y()][p.x()] != null;
-    }
-
-    public Punkt pustySasiad(Punkt start) {
-        for (int i = 0; i < 30; i++) {
-            int xr = rand.nextInt(3) - 1 + start.x();
-            int yr = rand.nextInt(3) - 1 + start.y();
-            Punkt rnd = new Punkt(xr, yr);
-            if (sprawdzCzyWGrid(rnd) && ktoTutaj(rnd) == null) {
-                return rnd;
-            }
-        }
-        return start;
-    }
+    public int getGridM() { return M; }
+    public int getGridN() { return N; }
 
     public Organizm ktoTutaj(Punkt p) {
+        if (!sprawdzCzyWGrid(p)) return null;
         return grid[p.y()][p.x()];
     }
 
+
+    public Punkt pustySasiad(Punkt start) {
+        for (int i = 0; i < 30; i++) {
+            int rx = rand.nextInt(3) - 1 + start.x();
+            int ry = rand.nextInt(3) - 1 + start.y();
+
+            // Pomiń, jeśli wylosowało to samo pole, na którym stoimy
+            if (rx == start.x() && ry == start.y()) continue;
+
+            Punkt p = new Punkt(rx, ry);
+            if (sprawdzCzyWGrid(p) && ktoTutaj(p) == null) {
+                return p;
+            }
+        }
+        // Jeśli nie znajdzie pustego sąsiada po 30 próbach, zwraca punkt startowy
+        return start;
+    }
     public Organizm ktoTutaj(int x, int y) {
+        if (!sprawdzCzyWGrid(x, y)) return null;
         return grid[y][x];
     }
 
-    public void wykonajTure() {
-        numerTury++;
-        logi.clear();
-        powtorkiInicjatywy();
-        sortInicjatywa();
-        List<Organizm> kopia = new ArrayList<>(inicjatywy);
-
-        for (Organizm o : kopia) {
-            if (o.isZyje()) {
-                o.akcja();
-                o.incWiek();
-            }
-        }
-        czysczenie();
-    }
-
-    private void sortInicjatywa() {
-        inicjatywy.sort((a, b) -> {
-            if (a.getInicjatywa() != b.getInicjatywa())
-                return b.getInicjatywa() - a.getInicjatywa();
-            return b.getWiek() - a.getWiek();
-        });
-    }
-
-    private void czysczenie() {
-
-        for (int y = 0; y < N; y++) {
-            for (int x = 0; x < M; x++) {
-                if (grid[y][x] != null && !grid[y][x].isZyje()) {
-                    grid[y][x] = null;
-                }
-            }
-        }
-
-
-        inicjatywy.removeIf(o -> !o.isZyje());
-    }
-
-    public List<Organizm> getInicjatywy() {
-        return inicjatywy;
-    }
-
-    private void powtorkiInicjatywy() {
-        List<Organizm> unikaty = new ArrayList<>();
-        for (Organizm o : inicjatywy) {
-            if (!unikaty.contains(o)) unikaty.add(o);
-        }
-        inicjatywy.clear();
-        inicjatywy.addAll(unikaty);
-    }
-
-    public void zmienPoz(Punkt stary, Punkt nowy, Organizm org) {
-        grid[stary.y()][stary.x()] = null;
-        grid[nowy.y()][nowy.x()] = org;
-    }
-
     public void przesunOrganizm(Organizm org, Punkt nowy) {
-        if (org == null || nowy == null) return;
-        if (!sprawdzCzyWGrid(nowy)) return;
-        for (int y = 0; y < N; y++) {
-            for (int x = 0; x < M; x++) {
-                if (grid[y][x] == org) grid[y][x] = null;
-            }
+        if (org == null || !sprawdzCzyWGrid(nowy)) return;
+
+        // Czyścimy stare miejsce
+        Punkt stary = org.getPolozenie();
+        if (stary != null && grid[stary.y()][stary.x()] == org) {
+            grid[stary.y()][stary.x()] = null;
         }
+
+        // Ustawiamy nowe
         grid[nowy.y()][nowy.x()] = org;
         org.setPolozenie(nowy);
     }
 
-    public void usunZGrid(Organizm org) {
-        if (org == null) return;
-        for (int y = 0; y < N; y++) {
-            for (int x = 0; x < M; x++) {
-                if (grid[y][x] == org) grid[y][x] = null;
-            }
+    // Metoda pomocnicza do walki (np. przesuwanie wygranego na miejsce przegranego)
+    public void zmienPoz(Punkt stary, Punkt nowy, Organizm org) {
+        if(stary != null && sprawdzCzyWGrid(stary)) grid[stary.y()][stary.x()] = null;
+        if(nowy != null && sprawdzCzyWGrid(nowy)) grid[nowy.y()][nowy.x()] = org;
+        if(org != null) org.setPolozenie(nowy);
+    }
+
+    public void dodajOrganizm(Organizm o) {
+        Punkt p = o.getPolozenie();
+        if (sprawdzCzyWGrid(p) && grid[p.y()][p.x()] == null) {
+            inicjatywy.add(o);
+            grid[p.y()][p.x()] = o;
         }
     }
 
-    public void dodajLogi(String s) {
-        logi.add(s);
+    public void usunZGrid(Organizm org) {
+        org.setZyje(false);
+        Punkt p = org.getPolozenie();
+        if (p != null && sprawdzCzyWGrid(p) && grid[p.y()][p.x()] == org) {
+            grid[p.y()][p.x()] = null;
+        }
     }
-
-    public List<String> getLogi() {
-        return logi;
+    public int losujPrzesuniecie() {
+        // Zwraca -1, 0 lub 1
+        return rand.nextInt(3) - 1;
     }
-
-    public Punkt losujPunkt(){
-
-        int x = rand.nextInt(Math.max(1, M));
-        int y = rand.nextInt(Math.max(1, N));
-        return new Punkt(x,y);
-    }
-
-    public int losujPrzesuniecie(){
-        int x = rand.nextInt(3)-1;
-
-        return x;
-    }
-    public Punkt losujPustyPunky(){
-        int mozliwosci = N * M;
-        while (mozliwosci>0){
-            Punkt p = losujPunkt();
-            if(ktoTutaj(p)==null){return p;}
-            mozliwosci--;
+    public Punkt losujPustyPunkt() { // Zostawiam Twoją nazwę metody :)
+        for (int i = 0; i < 50; i++) {
+            int x = rand.nextInt(M);
+            int y = rand.nextInt(N);
+            if (grid[y][x] == null) return new Punkt(x, y);
         }
         return null;
     }
 
-    public int getNumerTury() {
-        return numerTury;
-    }
-    public void wypelnijGrid(Organizm o, int ilosc){
-
-        for (int i = 0; i < ilosc; i++) {
-            Punkt p = losujPustyPunky();
-            if (p == null) break;
-            o.setSwiat(this);
-            o.setPolozenie(p);
-            if (grid[p.y()][p.x()] == null) {
-                inicjatywy.add(o);
-                grid[p.y()][p.x()] = o;
-            }
-        }
+    public Punkt losujPunkt() {
+        return new Punkt(rand.nextInt(M), rand.nextInt(N));
     }
 
-    private long totalAdds = 0;
+    public void dodajLogi(String s) { logi.add(s); }
+    public List<String> getLogi() { return logi; }
+    public List<Organizm> getOrganizmy() { return inicjatywy; }
+    public Random getRandom() { return rand; }
+    public int getNumerTury() { return numerTury; }
 
-    public void dodajOrganizm(Organizm o) {
-        if (o == null) return;
-        if (inicjatywy.contains(o)) return;
-
-        Punkt p = o.getPolozenie();
-        if (p != null) {
-            if (grid[p.y()][p.x()] == null) {
-                o.setSwiat(this);
-                inicjatywy.add(o);
-                grid[p.y()][p.x()] = o;
-                totalAdds++;
-            } else {
-            }
-        }
-    }
-
-    public long getTotalAdds() { return totalAdds; }
-
-    public Random getRandom() {
-        return rand;
-    }
-
-    public List<Organizm> getOrganizmy() {
-        return inicjatywy;
+    // Dla kompatybilności z Twoim kodem klawiszy
+    private labki.ui.GameCanvas gameCanvas;
+    public void setGameCanvas(labki.ui.GameCanvas gc) { this.gameCanvas = gc; }
+    public java.util.Set<Integer> getPressedKeys() {
+        return gameCanvas != null ? gameCanvas.getPressedKeys() : new java.util.HashSet<>();
     }
 }

@@ -1,30 +1,21 @@
 package labki.ui;
 
 import java.awt.BorderLayout;
-
 import javax.swing.JPanel;
-
 import labki.Swiat;
 
 public class GamePanel extends JPanel {
-    private final GameCanvas gameCanvas;
-    private final ControlPanel controlPanel;
-    private final LogsPanel logsPanel;
 
-    public GamePanel(Swiat world) {
+    public GamePanel(Swiat swiat) {
         setLayout(new BorderLayout());
 
-        // Panel z grą
-        gameCanvas = new GameCanvas(world);
-        world.setGameCanvas(gameCanvas);
-        add(gameCanvas, BorderLayout.CENTER);
+        GameCanvas planszaUI = new GameCanvas(swiat);
 
-        // Panel sterowania
-        controlPanel = new ControlPanel(world, gameCanvas);
-        add(controlPanel, BorderLayout.SOUTH);
-        
-        // Panel z logami
-        logsPanel = new LogsPanel(world);
-        add(logsPanel, BorderLayout.EAST);
+        swiat.setGameCanvas(planszaUI);
+
+        add(planszaUI, BorderLayout.CENTER);
+
+        LogsPanel panelLogow = new LogsPanel(swiat);
+        add(panelLogow, BorderLayout.EAST);
     }
 }
